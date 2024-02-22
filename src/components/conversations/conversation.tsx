@@ -10,15 +10,15 @@ export default function Conversation() {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <div className="w-full h-[60px] flex items-center hover:bg-muted/60 border-b px-5 gap-4 cursor-pointer">
-          <Avatar className="h-10 w-10">
+        <div className="w-full h-16 flex items-center hover:bg-muted/60 border-b px-5 gap-4 cursor-pointer">
+          <Avatar className="h-11 w-11">
             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          <div className="h-full w-full flex flex-col justify-center">
+          <div className="h-full w-full flex flex-col justify-center gap-[2px]">
             <div className="w-full flex justify-between">
               <p className="line-clamp-1 font-medium max-w-[60%]">Jake Denver</p>
-              <p className="line-clamp-1 text-muted-foreground text-sm max-w-[40%]">
+              <p className="line-clamp-1 text-muted-foreground text-xs max-w-[40%]">
                 12/12/2023
               </p>
             </div>

@@ -15,7 +15,7 @@ interface ViewState {
 }
 
 const useCurrentView = create<ViewState>()((set) => ({
-  view: "calls",
+  view: "home",
   changeView: (newView: Views) => set(() => ({ view: newView })),
 }));
 

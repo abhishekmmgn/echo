@@ -16,11 +16,11 @@ export default function Auth() {
             className="w-20 h-20 aspect-square bg-muted shadow-sm rounded-[var(--radius)] md:w-24 md:h-24"
           />
           <h1 className="text-3xl md:text-4xl font-semibold">
-            Sign up or Sign in
+            Continue to Authenticate
           </h1>
         </div>
         <Button variant="secondary" className="sm:max-w-md" onClick={() => loginWithRedirect()}>
-          Continue to Authenticate
+          Next
         </Button>
       </div>
     </div>
