@@ -12,9 +12,16 @@ import Navbar from "../navigation/navbar";
 export default function Home() {
   const { view } = useCurrentView();
   return (
-    <div className="grid md:grid-cols-[2fr_3fr] lg:grid-cols-[1fr_2fr] no-scrollbar">
-      <div className="h-screen no-scrollbar md:border-r">
-        <Navbar />
+    <div className="min-h-screen grid md:grid-cols-[2fr_3fr] lg:grid-cols-[1fr_2fr]">
+      <div className="md:border-r">
+        {view !== "calls" && view !== "details" && view !== "message-room" && (
+          <div className="md:hidden">
+            <Navbar />
+          </div>
+        )}
+        <div className="hidden md:inline">
+          <Navbar />
+        </div>
         <div
           className={`${
             view === "settings" || view === "new" ? "pt-16" : "pt-32"
@@ -24,9 +31,11 @@ export default function Home() {
           {view === "search" && <Search />}
           {view === "settings" && <Settings />}
           {view === "new" && <New />}
-          {view === "message-room" && <MessageRoom />}
-          {view === "details" && <Details />}
-          {view === "calls" && <Calls />}
+          <div className="md:hidden">
+            {view === "message-room" && <MessageRoom />}
+            {view === "details" && <Details />}
+            {view === "calls" && <Calls />}
+          </div>
           {view !== "home" &&
             view !== "search" &&
             view !== "settings" &&
@@ -46,11 +55,7 @@ export default function Home() {
           view !== "calls" &&
           view !== "details" &&
           view !== "message-room" &&
-          view !== "new" && (
-            <div className="">
-              <p>blank</p>
-            </div>
-          )}
+          view !== "new" && <NotFound />}
       </div>
     </div>
   );

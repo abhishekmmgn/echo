@@ -30,4 +30,36 @@ const useSearch = create<SearchState>()((set) => ({
     set((state) => ({ searchTerm: state + newSearchTerm })),
 }));
 
-export { useCurrentView, useSearch };
+interface ConversationState {
+  conversationId: string;
+  name: string;
+  avatar: string;
+  conversationType: "personal" | "group" | undefined;
+  changeCurrentConversation: (
+    newId: string,
+    newName: string,
+    newAvatar: string,
+    conversationType: "personal" | "group" | undefined
+  ) => void;
+}
+
+const useCurrentConversation = create<ConversationState>()((set) => ({
+  conversationId: "",
+  name: "",
+  avatar: "",
+  conversationType: undefined,
+  changeCurrentConversation: (
+    newId: string,
+    newName: string,
+    newAvatar: string,
+    type: "personal" | "group" | undefined
+  ) =>
+    set(() => ({
+      conversationId: newId,
+      name: newName,
+      avatar: newAvatar,
+      conversationType: type,
+    })),
+}));
+
+export { useCurrentView, useSearch, useCurrentConversation };

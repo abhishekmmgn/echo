@@ -1,6 +1,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "../ui/button";
 import Profile from "../settings/profile";
+import { ResponsiveDrawer } from "../responsive-drawer";
 
 export default function Settings() {
   const { logout } = useAuth0();
@@ -17,6 +18,7 @@ export default function Settings() {
         >
           Logout
         </Button>
+      <ResponsiveDrawer />
       </div>
     </>
   );

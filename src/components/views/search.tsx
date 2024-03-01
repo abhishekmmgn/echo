@@ -3,7 +3,23 @@ import Person from "../new/person";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 export default function Search() {
-  const arr = [1, 2, 3, 4, 5, 6];
+  const arr = [
+    {
+      name: "John Doe",
+      username: "jake123",
+      avatar: "",
+    },
+    {
+      name: "Kitty Oppenheimer",
+      username: "jake123",
+      avatar: "",
+    },
+    {
+      name: "Robert J. Oppenheimer",
+      username: "jake123",
+      avatar: "",
+    },
+  ];
   return (
     <div className="w-full pt-2">
       <Tabs defaultValue="conversations">
@@ -14,13 +30,27 @@ export default function Search() {
           </TabsList>
         </div>
         <TabsContent value="conversations">
-          {arr.map((index) => (
-            <Conversation key={index} />
+          {arr.map((conversation, index) => (
+            <Conversation
+              name={conversation.name}
+              date={new Date()}
+              unreadMessages={12}
+              message="Hello World! This is a test message."
+              avatar=""
+              key={index}
+              conversationType="group"
+              id={index.toString()}
+            />
           ))}
         </TabsContent>
         <TabsContent value="people">
-          {arr.map((index) => (
-            <Person key={index} />
+          {arr.map((person, index) => (
+            <Person
+              name={person.name}
+              username={person.username}
+              avatar={person.avatar}
+              key={index}
+            />
           ))}
         </TabsContent>
       </Tabs>

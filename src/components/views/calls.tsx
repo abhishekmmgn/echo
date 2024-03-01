@@ -1,35 +1,91 @@
+import { useState, useEffect } from "react";
+import { useCurrentConversation, useCurrentView } from "@/store";
 import {
   MdMicOff,
-  MdVideoCall,
   MdCallEnd,
   MdMic,
-  MdSpeaker,
-  MdCamera,
+  MdScreenShare,
+  MdStopScreenShare,
+  MdVideocam,
+  MdVideocamOff,
 } from "react-icons/md";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatAvatarName } from "@/lib/formatting";
 
 export default function Calls() {
+  const [micActive, setMicActive] = useState(true);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [screenSharing, setScreenSharing] = useState(false);
+  const [dailing, setDailing] = useState(true);
+
+  // time tracking
+  // calling
+
+  const { name, avatar } = useCurrentConversation();
+  const { changeView } = useCurrentView();
+
+  function connectCall() {
+    // connect the call
+    setDailing(false); // after call gets connected
+  }
+  function endCall() {
+    // end the call
+    changeView("message-room");
+  }
+  function switchCall() {
+    setCameraActive((prevCameraActiveState) => !prevCameraActiveState);
+    // switch the call to audio/video
+  }
+  function shareScreen() {
+    setScreenSharing((prevScreenSharingState) => !prevScreenSharingState);
+    // switch the call to audio/video
+  }
+  function changeMic() {
+    setMicActive((prevMicState) => !prevMicState);
+    // switch the call to audio/video
+  }
+
+  useEffect(() => {
+    connectCall();
+  }, []);
+
   return (
-    <div className="h-screen flex flex-col justify-between pt-12 pb-5">
-      <div className="flex flex-col items-center">
-        <img
-          src=""
-          alt=""
-          className="w-20 h-20 bg-secondary rounded-full md:w-28 md:h-28 lg:w-28 lg:h-28"
-        />
-        <h1 className="mt-1 text-2xl md:text-3xl">Name</h1>
-        <p className="mt-[2px] text-sm text-muted-foreground">Status</p>
+    <div className="fixed inset-0 md:relative h-screen bg-secondary/5 flex flex-col justify-between items-center pt-12 pb-5">
+      <div className="w-full max-w-lg flex flex-col items-center text-center gap-4">
+        <Avatar className="w-28 h-28 bg-secondary rounded-full sm:w-32 sm:h-32 text-3xl sm:text-4xl">
+          <AvatarImage src={avatar} alt={name} />
+          <AvatarFallback>{formatAvatarName(name)}</AvatarFallback>
+        </Avatar>
+        <h1 className="-mb-4 font-medium text-secondary-foreground text-3xl sm:text-4xl">
+          {name}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {dailing ? "Dailing" : cameraActive ? "Video Call" : "Audio Call"}
+        </p>
       </div>
-      <div className="mx-auto w-full max-w-lg flex items-center justify-evenly">
-        <span className="w-12 h-12 grid place-items-center bg-secondary hover:bg-muted/70 cursor-pointer rounded-full text-4xl">
-          {true ? <MdMic /> : <MdMicOff />}
+      <div className="w-full max-w-lg flex items-center justify-evenly">
+        <span
+          className="w-12 h-12 grid place-items-center bg-secondary hover:bg-muted/70 cursor-pointer rounded-full text-4xl"
+          onClick={changeMic}
+        >
+          {micActive ? <MdMic /> : <MdMicOff />}
         </span>
-        <span className="w-12 h-12 grid place-items-center bg-secondary hover:bg-muted/70 cursor-pointer rounded-full text-4xl">
-          {true ? <MdSpeaker /> : <MdMicOff />}
+        <span
+          className="w-12 h-12 grid place-items-center bg-secondary hover:bg-muted/70 cursor-pointer rounded-full text-4xl"
+          onClick={switchCall}
+        >
+          {cameraActive ? <MdVideocam /> : <MdVideocamOff />}
         </span>
-        <span className="w-12 h-12 grid place-items-center bg-secondary hover:bg-muted/70 cursor-pointer rounded-full text-4xl">
-          {true ? <MdVideoCall /> : <MdVideocam />}
+        <span
+          className="w-12 h-12 grid place-items-center bg-secondary hover:bg-muted/70 cursor-pointer rounded-full text-4xl"
+          onClick={shareScreen}
+        >
+          {screenSharing ? <MdScreenShare /> : <MdStopScreenShare />}
         </span>
-        <span className="w-12 h-12 grid place-items-center bg-red-500 hover:bg-red-600 cursor-pointer rounded-full text-4xl">
+        <span
+          className="w-11 h-11 grid place-items-center bg-red-500 hover:bg-red-600 cursor-pointer rounded-full text-4xl"
+          onClick={endCall}
+        >
           <MdCallEnd />
         </span>
       </div>

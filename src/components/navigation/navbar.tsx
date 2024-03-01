@@ -27,7 +27,7 @@ export default function Navbar() {
             />
           </>
         )}
-        <p className="text-primary font-medium md:text-base+">Echo</p>
+        <p className="text-primary font-medium md:text-base+ cursor-pointer" onClick={() => changeView("home")}>Echo</p>
         <MdAdd
           className={`w-6 h-6 cursor-pointer ${
             (view === "settings" || view === "new") && "invisible"
