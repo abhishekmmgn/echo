@@ -7,11 +7,11 @@ export default function MessageRoomHeader() {
   const { name, avatar, changeCurrentConversation } = useCurrentConversation();
   const { changeView } = useCurrentView();
   return (
-    <div className="absolute inset-x-0 z-10 top-0 w-full h-[84px] text-muted-foreground flex items-center justify-between gap-5 px-5 bg-background border-b">
+    <div className="absolute inset-x-0 z-10 top-0 w-full h-[84px] text-muted-foreground flex items-center justify-between gap-5 px-4 bg-background border-b">
       <MdChevronLeft
         className="w-8 h-8 cursor-pointer hover:text-primary"
         onClick={() => {
-          changeCurrentConversation("", "", "");
+          changeCurrentConversation("", "", "", undefined);
           changeView("home");
         }}
       />
@@ -23,7 +23,7 @@ export default function MessageRoomHeader() {
           <AvatarImage src={avatar} alt={name} />
           <AvatarFallback>{formatAvatarName(name)}</AvatarFallback>
         </Avatar>
-        <p className="text-center text-sm capitalize hover:text-primary">
+        <p className="text-center text-sm capitalize">
           {name}
         </p>
       </div>

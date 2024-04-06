@@ -1,9 +1,9 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "sonner";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <>
@@ -16,6 +16,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     >
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <App />
+        <Toaster />
       </ThemeProvider>
     </Auth0Provider>
   </>

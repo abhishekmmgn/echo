@@ -1,28 +1,63 @@
 import Person from "../new/person";
-import TableRow from "../looks/table-row";
+import ResponsiveDialog from "@/components/looks/responsive-dialog";
+import TableRow from "../table-row";
 import { MdGroup, MdContacts } from "react-icons/md";
+import NewContactForm from "../new/new-contact-form";
+import NewGrp from "../new/new-grp";
 
 export default function New() {
-  const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const arr = [
+    {
+      name: "Robert J. Oppenheimer",
+      username: "jake123",
+      avatar: "",
+    },
+    {
+      name: "John Doe",
+      username: "jake123",
+      avatar: "",
+    },
+    {
+      name: "Kitty Oppenheimer",
+      username: "jake123",
+      avatar: "",
+    },
+    {
+      name: "Robert J. Oppenheimer",
+      username: "jake123",
+      avatar: "",
+    },
+  ];
   return (
     <>
-      <TableRow
-        title="New Contact"
-        icon={<MdGroup className="text-xl" />}
-        text="New Contact"
-      >
-        lkdkf
-      </TableRow>
-      <TableRow
+      <ResponsiveDialog
+        trigger={
+          <TableRow icon={<MdGroup className="text-xl" />} title="New Group" />
+        }
         title="New Group"
-        icon={<MdContacts className="text-lg" />}
-        text="New Contact"
-      >
-        kjdkdf
-      </TableRow>
+        description="Create a new group"
+        body={<NewGrp />}
+      />
+      <ResponsiveDialog
+        trigger={
+          <TableRow
+            icon={<MdContacts className="text-lg" />}
+            title="New Contact"
+          />
+        }
+        title="New Contact"
+        description="Add a new contact"
+        body={<NewContactForm />}
+      />
 
-      {arr.map(() => (
-        <Person />
+      <TableRow title="Contacts" className="pl-5 hover:bg-transparent" />
+      {arr.map((person, index) => (
+        <Person
+          name={person.name}
+          username={person.username}
+          avatar={person.avatar}
+          key={index}
+        />
       ))}
     </>
   );

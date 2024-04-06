@@ -52,7 +52,7 @@ export default function Calls() {
   return (
     <div className="fixed inset-0 md:relative h-screen bg-secondary/5 flex flex-col justify-between items-center pt-12 pb-5">
       <div className="w-full max-w-lg flex flex-col items-center text-center gap-4">
-        <Avatar className="w-28 h-28 bg-secondary rounded-full sm:w-32 sm:h-32 text-3xl sm:text-4xl">
+        <Avatar className="w-24 h-24 bg-secondary rounded-full sm:w-32 sm:h-32 text-3xl sm:text-4xl">
           <AvatarImage src={avatar} alt={name} />
           <AvatarFallback>{formatAvatarName(name)}</AvatarFallback>
         </Avatar>

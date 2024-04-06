@@ -14,21 +14,10 @@ interface ViewState {
   changeView: (newView: Views) => void;
 }
 
-const useCurrentView = create<ViewState>()((set) => ({
-  view: "home",
-  changeView: (newView: Views) => set(() => ({ view: newView })),
-}));
-
 interface SearchState {
   searchTerm: string;
   changesearchTerm: (newSearchTerm: string) => void;
 }
-
-const useSearch = create<SearchState>()((set) => ({
-  searchTerm: "",
-  changesearchTerm: (newSearchTerm: string) =>
-    set((state) => ({ searchTerm: state + newSearchTerm })),
-}));
 
 interface ConversationState {
   conversationId: string;
@@ -42,6 +31,30 @@ interface ConversationState {
     conversationType: "personal" | "group" | undefined
   ) => void;
 }
+
+interface CurrentUserState {
+  userId: string;
+  name: string;
+  avatar: string;
+  username: string;
+  changeCurrentUser: (
+    newId: string,
+    newName: string,
+    newAvatar: string,
+    username: string
+  ) => void;
+}
+
+const useCurrentView = create<ViewState>()((set) => ({
+  view: "home",
+  changeView: (newView: Views) => set(() => ({ view: newView })),
+}));
+
+const useSearch = create<SearchState>()((set) => ({
+  searchTerm: "",
+  changesearchTerm: (newSearchTerm: string) =>
+    set(() => ({ searchTerm: newSearchTerm })),
+}));
 
 const useCurrentConversation = create<ConversationState>()((set) => ({
   conversationId: "",
@@ -62,4 +75,23 @@ const useCurrentConversation = create<ConversationState>()((set) => ({
     })),
 }));
 
-export { useCurrentView, useSearch, useCurrentConversation };
+const useCurrentUser = create<CurrentUserState>()((set) => ({
+  userId: "",
+  name: "",
+  avatar: "",
+  username: "",
+  changeCurrentUser: (
+    newUserId: string,
+    newName: string,
+    newAvatar: string,
+    newUsername: string
+  ) =>
+    set(() => ({
+      userId: newUserId,
+      name: newName,
+      avatar: newAvatar,
+      username: newUsername,
+    })),
+}));
+
+export { useCurrentView, useSearch, useCurrentConversation, useCurrentUser };

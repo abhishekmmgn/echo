@@ -3,7 +3,8 @@ export function formatAvatarName(name: string): string {
     return name
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase())
-      .join("");
+      .join("")
+      .substring(0, 2);
   } else {
     return "";
   }
@@ -17,5 +18,15 @@ export function formatDate(date: string | Date): string {
     return "Yesterday";
   } else {
     return new Date(date).toLocaleDateString();
+  }
+}
+
+export function formatFileSize(size: number): string {
+  if (size < 1024) {
+    return `${size} B`;
+  } else if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(2)} KB`;
+  } else {
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
   }
 }

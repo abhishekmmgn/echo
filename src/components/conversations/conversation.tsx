@@ -6,7 +6,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../ui/context-menu";
-import { formatAvatarName } from "@/lib/formatting";
+import { formatAvatarName, formatDate } from "@/lib/formatting";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type PropsType = {
@@ -36,7 +36,7 @@ export default function Conversation(props: PropsType) {
               props.conversationType
             );
           }}
-          className={`w-full h-16 flex items-center hover:bg-muted/60 border-b px-5 gap-4 cursor-pointer ${
+          className={`w-full h-16 flex items-center hover:bg-muted/60 border-b px-4 gap-4 cursor-pointer ${
             active && "bg-muted/60"
           }`}
         >
@@ -50,7 +50,7 @@ export default function Conversation(props: PropsType) {
                 {props.name}
               </p>
               <p className="line-clamp-1 text-muted-foreground text-xs max-w-[40%]">
-                {props.date?.toDateString()}
+                {formatDate(props.date)}
               </p>
             </div>
             <div className="w-full flex justify-between">
@@ -66,8 +66,7 @@ export default function Conversation(props: PropsType) {
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem>Mark as Read</ContextMenuItem>
-        <ContextMenuItem>Delete</ContextMenuItem>
-        <ContextMenuItem>Hide</ContextMenuItem>
+        <ContextMenuItem className="text-destructive">Delete</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -75,7 +74,7 @@ export default function Conversation(props: PropsType) {
 
 export function ConversationSkeleton() {
   return (
-    <div className="w-full h-16 border-b border-muted/80 px-5 gap-4 flex items-center">
+    <div className="w-full h-16 border-b border-muted/80 px-4 gap-4 flex items-center">
       <Skeleton className="h-12 w-12 rounded-full" />
       <div className="w-full space-y-2">
         <div className="w-full flex justify-between">
