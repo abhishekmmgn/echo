@@ -1,25 +1,59 @@
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { MdChevronLeft } from "react-icons/md";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { formatAvatarName } from "@/lib/formatting";
+import getId, { formatAvatarName } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { a } from "@/data";
 import { Person } from "../person";
 import { ScrollArea } from "../ui/scroll-area";
 import File from "../file";
+import api from "@/api/axios";
+import { toast } from "sonner";
+import { ConversationStateType } from "@/types";
 
 export default function Details() {
-  const { name, avatar, conversationType, changeCurrentConversation } =
-    useCurrentConversation();
+  const { conversation, changeCurrentConversation } = useCurrentConversation();
   const { changeView } = useCurrentView();
   function deleteConversation() {
     // delete conversation
-    changeCurrentConversation("", "", "", undefined);
+    const noConversation: ConversationStateType = {
+      conversationId: null,
+      name: "",
+      avatar: "",
+      email: null,
+      participants: [],
+      conversationType: null,
+      hasConversation: null,
+    };
+    changeCurrentConversation(noConversation);
     changeView("home");
   }
-  function blockPerson() {
-    // block person
-    changeCurrentConversation("", "", "", undefined);
+  async function blockPerson() {
+    try {
+      const res = await api.put(
+        `/contacts/${conversation.participants[0]}?id=${getId()}`,
+        {
+          block: true,
+        }
+      );
+      console.log(res.status);
+      if (res.status === 200) {
+        toast("Blocked successfully");
+      }
+    } catch (error) {
+      console.log(error);
+      toast("Someting went wrong");
+    }
+    const noConversation: ConversationStateType = {
+      conversationId: null,
+      name: "",
+      avatar: "",
+      email: null,
+      participants: [],
+      conversationType: null,
+      hasConversation: null,
+    };
+    changeCurrentConversation(noConversation);
     changeView("home");
   }
   function exitGroup() {}
@@ -37,14 +71,19 @@ export default function Details() {
         <div className="max-w-xl mx-auto space-y-10">
           <div className="flex flex-col items-center gap-1">
             <Avatar className="w-28 h-28 bg-secondary rounded-full sm:w-28 sm:h-28 text-5xl sm:text-6xl">
-              <AvatarImage src={avatar} alt={name} />
-              <AvatarFallback>{formatAvatarName(name)}</AvatarFallback>
+              <AvatarImage
+                src={conversation.avatar || ""}
+                alt={conversation.name || ""}
+              />
+              <AvatarFallback>
+                {formatAvatarName(conversation.name || "")}
+              </AvatarFallback>
             </Avatar>
             <h2 className="mt-1 text-center capitalize font-medium text-2xl lg:text-3xl">
-              {name}
+              {conversation.name}
             </h2>
             <p className="text-center lowercase md:text-base+ text-muted-foreground">
-              {"abhishekmmng"}
+              {conversation.email}
             </p>
           </div>
           {/* <div className="px-4 space-y-2">
@@ -58,7 +97,7 @@ export default function Details() {
               ))}
             </ScrollArea>
           </div> */}
-          {conversationType === "group" && (
+          {conversation.conversationType === "GROUP" && (
             <div className="px-4 space-y-2">
               <div className="flex justify-between px-4">
                 <p className="text-lg+ md:text-xl font-medium">Group Members</p>
@@ -68,17 +107,19 @@ export default function Details() {
                 {a.map((person, index) => (
                   <Person
                     name={person.name}
-                    username={person.username}
+                    email={person.email}
                     avatar={person.avatar}
                     id={person.id}
                     key={index}
+                    blocked={person.blocked}
+                    hasConversation={person.hasConversation}
                   />
                 ))}
               </ScrollArea>
             </div>
           )}
           <div className="px-4 space-y-3">
-            {conversationType === "group" ? (
+            {conversation.conversationType === "GROUP" ? (
               isAdmin ? (
                 <Button variant="destructive" onClick={deleteGroup}>
                   Delete Group

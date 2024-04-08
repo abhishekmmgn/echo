@@ -13,33 +13,49 @@ import {
 import { Input } from "@/components/ui/input";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
+import api from "@/api/axios";
+import getId from "@/lib/utils";
+import { isAxiosError } from "axios";
 
 const formSchema = z.object({
-  username: z
-    .string()
-    .min(6, {
-      message: "Username must be at least 6 characters.",
-    })
-    .max(10, {
-      message: "Username must be at most 10 characters.",
-    }),
+  email: z.string().email(),
 });
 
 export default function NewContactForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      email: "",
     },
   });
   const { isSubmitting } = form.formState;
-  function onSubmit(values: z.infer<typeof formSchema>) {
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     if (form.formState.submitCount < 3) {
-      setInterval(() => {
-        //   form.reset();
-      }, 3000);
-      fetch("");
-      console.log(values);
+      try {
+        const res = await api.post(`/contacts?id=${getId()}`, {
+          email: values.email,
+        });
+        console.log(res.status);
+        if (res.status === 201) {
+          console.log(res.data.data);
+          form.reset();
+        }
+        toast("Contact added successfully.");
+      } catch (error) {
+        if (isAxiosError(error)) {
+          if (error?.response?.status! === 400) {
+            toast("Email required.");
+          } else if (error?.response?.status! === 404) {
+            toast("User not found.");
+          } else if (error?.response?.status! === 409) {
+            toast("Contact already exists.");
+          }
+          return;
+        }
+        console.log(error);
+        toast("Something went wrong");
+      }
     } else {
       toast("You have reached the limit of 3 submits");
     }
@@ -50,12 +66,12 @@ export default function NewContactForm() {
         <FormField
           control={form.control}
           disabled={isSubmitting}
-          name="username"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="johndoe" {...field} />
+                <Input placeholder="john.doe@proton.me" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

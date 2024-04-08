@@ -1,4 +1,4 @@
-import { formatAvatarName, formatDate } from "@/lib/formatting";
+import { formatAvatarName, formatDate } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { File } from "lucide-react";
 import {
@@ -13,11 +13,11 @@ import { saveAs } from "file-saver";
 interface BubbleInterface {
   sender: "current" | "other";
   name: string;
-  avatar: string;
+  avatar: string | null;
   date: Date | string;
 }
 interface BubbleWrapperInterface extends BubbleInterface {
-  type: "text" | "image" | "file";
+  type: "TEXT" | "FILE" | "IMAGE" | "CALL";
   fileUrl?: string;
   fileName?: string;
   children: React.ReactNode;
@@ -29,7 +29,6 @@ interface MessageBubbleInterface extends BubbleInterface {
 }
 
 interface FileBubbleInterface extends MessageBubbleInterface {
-  fileUrl: string;
   fileName: string;
 }
 
@@ -55,7 +54,7 @@ function BubbleWrapper(props: BubbleWrapperInterface) {
           >
             {props.sender === "other" && (
               <Avatar className="h-9 w-9">
-                <AvatarImage src={props.avatar} alt={props.name} />
+                <AvatarImage src={props.avatar || ""} alt={props.name} />
                 <AvatarFallback className="text-xs+">
                   {formatAvatarName(props.name)}
                 </AvatarFallback>
@@ -69,7 +68,7 @@ function BubbleWrapper(props: BubbleWrapperInterface) {
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-32">
-        {props.type !== "text" && (
+        {props.type !== "TEXT" && (
           <ContextMenuItem onClick={downloadMessage}>Download</ContextMenuItem>
         )}
         <Separator />
@@ -86,7 +85,7 @@ export function TextBubble(props: MessageBubbleInterface) {
       avatar={props.avatar}
       sender={props.sender}
       date={props.date}
-      type="text"
+      type="TEXT"
     >
       <div
         className={`w-fit max-w-[60%] sm:max-w-[80%] lg:max-w-[60%] rounded-[var(--radius)] px-4 py-2 ${
@@ -108,12 +107,12 @@ export function ImageBubble(props: FileBubbleInterface) {
       avatar={props.avatar}
       sender={props.sender}
       date={props.date}
-      type="image"
-      fileUrl={props.fileUrl}
+      type="IMAGE"
+      fileUrl={props.message}
       fileName={props.fileName}
     >
       <img
-        src={props.fileUrl}
+        src={props.message}
         alt={props.fileName}
         className="w-3/5 sm:w-1/2 md:w-3/5 lg:w-1/2 xl:w-[30%] bg-muted border-2 aspect-square rounded-[var(--radius)] object-cover"
       />
@@ -128,8 +127,8 @@ export function FileBubble(props: FileBubbleInterface) {
       avatar={props.avatar}
       sender={props.sender}
       date={props.date}
-      type="file"
-      fileUrl={props.fileUrl}
+      type="FILE"
+      fileUrl={props.message}
       fileName={props.fileName}
     >
       <div

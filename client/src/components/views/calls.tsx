@@ -10,7 +10,7 @@ import {
   MdVideocamOff,
 } from "react-icons/md";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatAvatarName } from "@/lib/formatting";
+import { formatAvatarName } from "@/lib/utils";
 
 export default function Calls() {
   const [micActive, setMicActive] = useState(true);

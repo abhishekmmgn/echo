@@ -6,7 +6,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { formatAvatarName, formatDate } from "@/lib/formatting";
+import { formatAvatarName, formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConversationType } from "@/types";
 

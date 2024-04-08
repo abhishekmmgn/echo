@@ -1,4 +1,4 @@
-import { formatFileSize } from "@/lib/formatting";
+import { formatFileSize } from "@/lib/utils";
 import { FileType } from "@/types";
 import { Download } from "lucide-react";
 
@@ -16,7 +16,10 @@ export default function File(props: FileType) {
           </p>
         )}
       </div>
-      <Download className="text-muted-foreground/70 cursor-pointer hover:text-muted-foreground/90" onClick={downloadFile} />
+      <Download
+        className="text-muted-foreground/70 cursor-pointer hover:text-muted-foreground/90"
+        onClick={downloadFile}
+      />
     </div>
   );
 }

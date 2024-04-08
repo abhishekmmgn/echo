@@ -4,11 +4,77 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://netdesertthethirdman:InEdsjfzvq6Z1xkOO4O_Uw@echo-app-4679.7s5.aws-ap-south-1.cockroachlabs.cloud:26257/echo?sslmode=verify-full"
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  CALL
+}
+
+enum ConversationType {
+  PRIVATE
+  GROUP
 }
 
 model User {
-  id    Int     @id
-  email String  @unique
-  name  String?
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  name      String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts  Contact[] @relation("UserContactsUser")
+  contactOf Contact[] @relation("UserContactsContact")
+
+  conversations Conversation[] @relation("ConversationUsers")
+  createdGroups Conversation[] @relation("CreatedBy")
+  messages      Message[]      @relation("UserMessages")
+
+  @@index([email])
+}
+
+model Contact {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hasConversation Boolean @default(false)
+  blocked         Boolean @default(false)
+
+  userId    String @db.Uuid
+  contactId String @db.Uuid
+
+  User    User @relation("UserContactsUser", fields: [userId], references: [id])
+  contact User @relation("UserContactsContact", fields: [contactId], references: [id])
+
+  @@unique([userId, contactId])
+}
+
+model Conversation {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String?
+  avatar    String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  type      ConversationType
+
+  messages     Message[]
+  participants User[]    @relation("ConversationUsers")
+
+  createdBy User   @relation("CreatedBy", fields: [creatorId], references: [id])
+  creatorId String @db.Uuid
+}
+
+model Message {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content   String
+  type      MessageType
+  createdAt DateTime    @default(now())
+
+  senderId       String @db.Uuid
+  conversationId String @db.Uuid
+
+  sender       User         @relation("UserMessages", fields: [senderId], references: [id])
+  conversation Conversation @relation(fields: [conversationId], references: [id])
 }

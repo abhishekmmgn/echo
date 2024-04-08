@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { ConversationStateType } from "./types";
 
 type Views =
   | "home"
@@ -13,66 +14,51 @@ interface ViewState {
   view: Views;
   changeView: (newView: Views) => void;
 }
+const useCurrentView = create<ViewState>()((set) => ({
+  view: "home",
+  changeView: (newView: Views) => set(() => ({ view: newView })),
+}));
 
 interface SearchState {
   searchTerm: string;
   changesearchTerm: (newSearchTerm: string) => void;
 }
-interface ConversationState {
-  conversationId: string;
-  name: string;
-  avatar: string;
-  conversationType: "personal" | "group" | undefined;
-  changeCurrentConversation: (
-    newId: string,
-    newName: string,
-    newAvatar: string,
-    conversationType: "personal" | "group" | undefined
-  ) => void;
-}
-
-interface CurrentUserState {
-  uid: string;
-  name: string;
-  avatar: string;
-  email: string;
-  changeCurrentUser: (
-    newUID: string,
-    newName: string,
-    newAvatar: string,
-    newEmail: string
-  ) => void;
-}
-
-const useCurrentView = create<ViewState>()((set) => ({
-  view: "home",
-  changeView: (newView: Views) => set(() => ({ view: newView })),
-}));
 const useSearch = create<SearchState>()((set) => ({
   searchTerm: "",
   changesearchTerm: (newSearchTerm: string) =>
     set(() => ({ searchTerm: newSearchTerm })),
 }));
 
-const useCurrentConversation = create<ConversationState>()((set) => ({
-  conversationId: "",
-  name: "",
-  avatar: "",
-  conversationType: undefined,
-  changeCurrentConversation: (
-    newId: string,
-    newName: string,
-    newAvatar: string,
-    type: "personal" | "group" | undefined
-  ) =>
-    set(() => ({
-      conversationId: newId,
-      name: newName,
-      avatar: newAvatar,
-      conversationType: type,
-    })),
+interface ConversationStateInterface {
+  conversation: ConversationStateType;
+  changeCurrentConversation: (newConversation: ConversationStateType) => void;
+}
+const useCurrentConversation = create<ConversationStateInterface>()((set) => ({
+  conversation: {
+    conversationId: "",
+    name: "",
+    avatar: "",
+    email: null,
+    participants: [],
+    conversationType: null,
+    hasConversation: null,
+  },
+  changeCurrentConversation: (newConversation: ConversationStateType) =>
+    set(() => ({ conversation: newConversation })),
 }));
 
+interface CurrentUserState {
+  uid: string;
+  name: string;
+  avatar: string | null;
+  email: string;
+  changeCurrentUser: (
+    newUID: string,
+    newName: string,
+    newAvatar: string | null,
+    newEmail: string
+  ) => void;
+}
 const useCurrentUser = create<CurrentUserState>()((set) => ({
   uid: "",
   name: "",
@@ -81,7 +67,7 @@ const useCurrentUser = create<CurrentUserState>()((set) => ({
   changeCurrentUser: (
     newUID: string,
     newName: string,
-    newAvatar: string,
+    newAvatar: string | null,
     newEmail: string
   ) =>
     set(() => ({

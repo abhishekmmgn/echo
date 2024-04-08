@@ -1,63 +1,64 @@
 import { useEffect, useState } from "react";
 import { Conversation } from "../conversation";
-import { Person } from "../person";
+import { Person, PersonSkeleton } from "../person";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useSearch } from "@/store";
 import { ContactType } from "@/types";
+import api from "@/api/axios";
+import { useQuery } from "@tanstack/react-query";
+import getId from "@/lib/utils";
 
+// CONVERSATION
 export default function Search() {
-  const [arr, setArr] = useState([
-    {
-      name: "Robert J. Oppenheimer",
-      username: "jake123",
-      avatar: "",
-    },
-    {
-      name: "John Doe",
-      username: "jake123",
-      avatar: "",
-    },
-    {
-      name: "Kitty Oppenheimer",
-      username: "jake123",
-      avatar: "",
-    },
-    {
-      name: "Robert J. Oppenheimer",
-      username: "jake123",
-      avatar: "",
-    },
-  ]);
-  const [results, setResults] = useState([
-    {
-      name: "Robert J. Oppenheimer",
-      username: "jake123",
-      avatar: "",
-    },
-    {
-      name: "John Doe",
-      username: "jake123",
-      avatar: "",
-    },
-    {
-      name: "Kitty Oppenheimer",
-      username: "jake123",
-      avatar: "",
-    },
-    {
-      name: "Robert J. Oppenheimer",
-      username: "jake123",
-      avatar: "",
-    },
-  ]);
+  const [filteredContacts, setFilteredContacts] = useState<ContactType[]>([]);
+  // const [filteredConversations, setFilteredConversations] = useState<>([]);
   const { searchTerm } = useSearch();
+
+  // const {
+  //   data: contactsData,
+  //   isLoading: isContactsLoading,
+  //   isError: isContactsError,
+  //   error: contactsError,
+  // } = useQuery({
+  //   queryKey: ["conversations"],
+  //   queryFn: async () => {
+  //     const res = await api.get(`/contacts?id=${getId()}`);
+  //     return res.data.data;
+  //   },
+  // });
+  const {
+    data: contactsData,
+    isLoading: isContactsLoading,
+    isError: isContactsError,
+    error: contactsError,
+  } = useQuery({
+    queryKey: ["contacts"],
+    queryFn: async () => {
+      const res = await api.get(`/contacts?id=${getId()}`);
+      return res.data.data;
+    },
+  });
+
   useEffect(() => {
-    setResults(
-      arr.filter((person) => {
-        return person.name.toLowerCase().includes(searchTerm.toLowerCase());
-      })
-    );
+    if (contactsData) {
+      setFilteredContacts(
+        contactsData.filter((person: ContactType) => {
+          return person.name.toLowerCase().includes(searchTerm.toLowerCase());
+        })
+      );
+    }
+    if (searchTerm.length === 0) {
+      setFilteredContacts(contactsData);
+    }
   }, [searchTerm]);
+
+  useEffect(() => {
+    setFilteredContacts(contactsData);
+  }, [contactsData]);
+
+  if (isContactsError) {
+    console.log(contactsError);
+  }
   return (
     <div className="w-full">
       <Tabs defaultValue="conversations">
@@ -68,7 +69,7 @@ export default function Search() {
           </TabsList>
         </div>
         <TabsContent value="conversations" className="mt-0">
-          {results.map((conversation, index) => (
+          {/* {results.map((conversation, index) => (
             <Conversation
               name={conversation.name}
               date={new Date()}
@@ -79,18 +80,25 @@ export default function Search() {
               type="group"
               id={index.toString()}
             />
-          ))}
+          ))} */}
         </TabsContent>
         <TabsContent value="people" className="mt-0">
-          {results.map((person, idx) => (
-            <Person
-              id={person.id}
-              name={person.name}
-              username={person.username}
-              avatar={person.avatar}
-              key={idx}
-            />
-          ))}
+          {isContactsLoading &&
+            Array.from({ length: 10 }).map((_, idx) => (
+              <PersonSkeleton key={idx} />
+            ))}
+          {contactsData &&
+            filteredContacts?.map((person: ContactType) => (
+              <Person
+                id={person.id}
+                name={person.name}
+                email={person.email}
+                avatar={person.avatar}
+                blocked={person.blocked}
+                hasConversation={person.hasConversation}
+                key={person.id}
+              />
+            ))}
         </TabsContent>
       </Tabs>
     </div>
