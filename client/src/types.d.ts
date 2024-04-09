@@ -7,25 +7,13 @@ export type ContactType = {
   hasConversation: boolean;
 };
 
-export type GroupType = {
-  name: string;
-  avatar: string | null;
-  id: string;
-};
-
-export type FileType = {
-  name: string;
-  size?: number;
-};
-
 export type ConversationType = {
   name: string;
   avatar: string | null;
   lastMessage: string;
-  date: Date;
-  unreadMessages: number;
+  time: string;
   id: string;
-  type: "private" | "group";
+  type: "PRIVATE" | "GROUP";
 };
 
 type ConversationStateType = {
@@ -48,7 +36,7 @@ export type BasicDetailsType = {
 export type MessageType = {
   id: string;
   content: string;
-  time: Date | string;
+  time: string;
   type: "TEXT" | "FILE" | "IMAGE" | "CALL";
   senderId: string;
   name: string;

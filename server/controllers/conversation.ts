@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 import { prisma } from "..";
-import type { ContactType, ConversationType } from "../types";
+import type { ConversationType } from "../types";
 
 export async function getAllConversations(req: Request, res: Response) {
   const { id } = req.query;
@@ -47,9 +47,35 @@ export async function getAllConversations(req: Request, res: Response) {
       },
     });
 
+    const formattedConversations: ConversationType[] = conversations.map(
+      (convo) => {
+        let name = convo.name;
+        let avatar = convo.avatar;
+
+        if (convo.type === "PRIVATE") {
+          const otherParticipant = convo.participants.find(
+            (p) => p.id !== id.toString()
+          );
+          if (otherParticipant) {
+            name = otherParticipant.name;
+            avatar = otherParticipant.avatar;
+          }
+        }
+        return {
+          name: name!,
+          avatar,
+          lastMessage: convo.messages[0]?.content || "",
+          time:
+            convo.messages[0]?.createdAt.toString() ||
+            convo.createdAt.toString(),
+          id: convo.id,
+          type: convo.type,
+        };
+      }
+    );
     res.status(200).json({
       message: "Successfully fetched conversations",
-      data: conversations,
+      data: formattedConversations,
     });
   } catch (error) {
     res.status(500).json({ error: "Error fetching conversations" });
@@ -73,10 +99,15 @@ export async function getConversation(req: Request, res: Response) {
   }
   try {
     let conversation;
+    // console.log("C: ",    conversationId);
+    // return res.status(200);
     if (conversationId) {
       conversation = await prisma.conversation.findUnique({
         where: {
           id: conversationId.toString(),
+        },
+        include: {
+          participants: true,
         },
       });
     } else if (otherUserId) {
@@ -96,32 +127,119 @@ export async function getConversation(req: Request, res: Response) {
             },
           ],
         },
+        include: {
+          participants: true,
+        },
       });
+    }
+    const messages = await prisma.message.findMany({
+      where: {
+        conversation: {
+          id: conversation?.id,
+        },
+      },
+      include: {
+        sender: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+    if (conversation && messages) {
+      let name = conversation.name;
+      let avatar = conversation.avatar;
+
+      if (conversation.type === "PRIVATE") {
+        const otherParticipant = conversation.participants.find(
+          (p) => p.id !== id.toString()
+        );
+        if (otherParticipant) {
+          name = otherParticipant.name;
+          avatar = otherParticipant.avatar;
+        }
+      }
+      const formattedConversation = {
+        id: conversation.id,
+        name: name!,
+        avatar,
+        type: conversation.type,
+      };
+      const formattedMessages = messages.map((message) => {
+        return {
+          id: message.id,
+          content: message.content,
+          type: message.type,
+          name: message.sender.name,
+          avatar: message.sender.avatar,
+          time: message.createdAt,
+          senderId: message.senderId,
+        };
+      });
+
+      return res.status(200).json({
+        message: "Conversation found",
+        data: {
+          conversation: formattedConversation,
+          messages: formattedMessages,
+        },
+      });
+    }
+    return res.status(404).json({
+      message: "Conversation not found",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Error finding contact" });
+  }
+}
+export async function getConversationDetails(req: Request, res: Response) {
+  const { conversationId } = req.params;
+  const { id } = req.query;
+
+  if (!conversationId && !id) {
+    return res.status(400).json({
+      message: `${id === undefined && "User id"} ${
+        conversationId === undefined && conversationId
+      } required`,
+    });
+  }
+  try {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        id: conversationId,
+      },
+      include: {
+        participants: true,
+      },
+    });
+    // console.log(messages);
+    if (!conversation) {
+      return res.status(404).json({
+        message: "Conversation not found",
+      });
+    }
+    if (conversation) {
+      // find all message of type file
       const messages = await prisma.message.findMany({
         where: {
           conversation: {
             id: conversation?.id,
           },
-        },
-        include: {
-          sender: {
-            select: {
-              name: true,
-              avatar: true,
-            },
+          type: {
+            in: ["FILE", "IMAGE"],
           },
         },
       });
-      // console.log(messages);
-      if (conversation && messages) {
-        return res.status(200).json({
-          message: "Conversation found",
-          data: {
-            conversation,
-            messages,
-          },
-        });
-      }
+      return res.status(200).json({
+        message: "Conversation found",
+        data: {
+          participants: conversation.participants,
+          isAdmin: conversation.creatorId === id?.toString(),
+          messages,
+        },
+      });
     }
   } catch (error) {
     res.status(500).json({ error: "Error finding contact" });
@@ -132,15 +250,6 @@ export async function createConversation(req: Request, res: Response) {
     req.body;
   const { id } = req.query;
 
-  console.log(
-    participants,
-    content,
-    conversationType,
-    name,
-    avatar,
-    messageType,
-    id
-  );
   // valiadtion for group & private conversation
   if (
     conversationType === "GROUP" &&
@@ -168,10 +277,10 @@ export async function createConversation(req: Request, res: Response) {
     });
   }
 
-  const participantIds = [...participants, id?.toString()];
+  const participantIds = [...participants, id?.toString()].map((id) => ({
+    id,
+  }));
 
-  console.log(participantIds);
-  // return res.status(200);
   try {
     if (conversationType === "GROUP") {
       const conversation = await prisma.conversation.create({
@@ -194,7 +303,7 @@ export async function createConversation(req: Request, res: Response) {
       return res.status(200).json({
         message: "Group created successfully",
         data: {
-          conversation,
+          conversationId: conversation.id,
         },
       });
     } else if (conversationType === "PRIVATE") {
@@ -204,12 +313,12 @@ export async function createConversation(req: Request, res: Response) {
           AND: [
             {
               participants: {
-                some: { id: participantIds[0] },
+                some: { id: participantIds[0].toString() },
               },
             },
             {
               participants: {
-                some: { id: participantIds[1] },
+                some: { id: participantIds[1].toString() },
               },
             },
           ],
@@ -245,7 +354,10 @@ export async function createConversation(req: Request, res: Response) {
           data: {
             type: "PRIVATE",
             participants: {
-              connect: [{ id: participantIds[0] }, { id: participantIds[1] }],
+              connect: [
+                { id: participantIds[0].toString() },
+                { id: participantIds[1].toString() },
+              ],
             },
             createdBy: { connect: { id: id?.toString() } },
           },
@@ -271,7 +383,7 @@ export async function createConversation(req: Request, res: Response) {
           where: {
             userId_contactId: {
               userId: id?.toString()!,
-              contactId: participantIds[0],
+              contactId: participantIds[0].toString(),
             },
           },
           data: {
@@ -299,84 +411,159 @@ export async function createConversation(req: Request, res: Response) {
   }
 }
 export async function deleteConversation(req: Request, res: Response) {
-  const contactId = req.params.id;
-  const currentUserId = req.query.id;
+  const conversationId = req.params.id;
 
-  if (!currentUserId || !contactId) {
+  if (!conversationId) {
     return res.status(400).json({
-      message: "Id and email required",
+      message: "Conversation Id required",
     });
   }
+
   try {
-    // Delete the contact relationship
-    const deletedContact = await prisma.contact.deleteMany({
-      where: {
-        userId: currentUserId.toString(),
-        contactId: contactId,
+    // Fetch the conversation type and participants
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: true,
       },
     });
 
-    // Check if any record was deleted
-    if (deletedContact.count === 0) {
-      console.log("No contact found to delete");
-    } else {
-      console.log("Contact deleted successfully");
+    if (!conversation) {
+      throw new Error("Conversation not found.");
     }
 
-    return res.status(200).json({ message: "Contact deleted successfully" });
+    await prisma.$transaction(async (prisma) => {
+      // Delete all messages related to the conversation
+      await prisma.message.deleteMany({
+        where: { conversationId },
+      });
+
+      // Delete the conversation
+      await prisma.conversation.delete({
+        where: { id: conversationId },
+      });
+
+      // If the conversation is private, update hasConversation for participants
+      if (conversation.type === "PRIVATE") {
+        const participantIds = conversation.participants.map((p) => p.id);
+        await prisma.contact.updateMany({
+          where: {
+            id: { in: participantIds },
+          },
+          data: {
+            hasConversation: false,
+          },
+        });
+      }
+    });
+
+    return res.status(200).json({
+      message: "Conversation and all related messages deleted successfully.",
+    });
   } catch (error) {
-    console.error("Error deleting contact:", error);
+    console.error("Error deleting conversation:", error);
+    res.status(500).json({
+      message:
+        "Failed to delete conversation and related messages. error occurred while creating the conversation",
+      error,
+    });
+    throw new Error("");
   }
 }
 
-export async function editContact(req: Request, res: Response) {
-  const contactId = req.params.id;
-  const currentUserId = req.query.id;
-  const { hasConversation, block } = req.body;
+export async function editConversation(req: Request, res: Response) {
+  const id = req.query.id;
+  const { operation, conversationId, avatar, name } = req.body;
 
-  console.log(currentUserId, contactId);
-  if (!currentUserId || !contactId) {
+  if (!id || !operation || !conversationId) {
     return res.status(400).json({
-      message: "Id and email required",
+      message: "Id, conversation id and operation are required",
     });
   }
-  // Build the data object conditionally
-  const dataToUpdate: { [key: string]: any } = {};
-  if (block !== undefined) {
-    dataToUpdate.blocked = block;
-  }
-  if (hasConversation !== undefined) {
-    dataToUpdate.hasConversation = hasConversation;
-  }
+  console.log("Here.");
 
-  if (Object.keys(dataToUpdate).length === 0) {
-    return res.status(400).json({
-      message: "No valid fields provided to update",
-    });
-  }
+  if (operation === "EXIT_GROUP") {
+    try {
+      // Fetch the conversation type and participants
+      const conversation = await prisma.conversation.findUnique({
+        where: { id: conversationId },
+        include: {
+          participants: true,
+        },
+      });
 
-  try {
-    const updatedContact = await prisma.contact.updateMany({
-      where: {
-        userId: currentUserId.toString(),
-        contactId: contactId,
-      },
-      data: dataToUpdate,
-    });
+      if (!conversation) {
+        return res.status(404).json({
+          message: "Conversation not found",
+        });
+      }
 
-    // Check if any record was updated
-    if (updatedContact.count === 0) {
-      console.log("No contact found to update");
-    } else {
-      console.log("Contact updated successfully");
+      // Start a transaction to ensure atomicity
+      await prisma.$transaction(async (prisma) => {
+        if (conversation.type === "GROUP") {
+          await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+              participants: {
+                disconnect: { id: id.toString() },
+              },
+            },
+          });
+        }
+      });
+      return res.status(200).json({
+        message: "Exited the group successfully.",
+      });
+    } catch (error) {
+      console.error("Error exiting the group:", error);
+      res.status(500).json({
+        message: "Error exiting the group.",
+        error,
+      });
     }
-    return res.status(200).json({
-      message: `Contact ${
-        block !== undefined ? (block ? "blocked" : "unblocked") : "updated"
-      } successfully`,
-      updatedContact,
-    });
-  } catch (error) {
-    console.error("Error updating contact:", error);
+  } else if (operation === "EDIT_DETAILS") {
+    try {
+      let dataToBeUpdated = {};
+      if (name !== undefined) {
+        dataToBeUpdated = { ...dataToBeUpdated, name };
+      }
+      if (avatar !== undefined) {
+        dataToBeUpdated = { ...dataToBeUpdated, avatar };
+      }
+
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: dataToBeUpdated,
+      });
+      return res.status(200).json({
+        message: "Conversation details updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error exiting the group:", error);
+      res.status(500).json({
+        message: "Error exiting the group.",
+        error,
+      });
+    }
+  } else if (operation === "EDIT_PARTICIPANTS") {
+    try {
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: {
+          participants: {
+            disconnect: { id: id.toString() },
+          },
+        },
+      });
+      return res.status(200).json({
+        message: "Exited the group successfully.",
+      });
+    } catch (error) {
+      console.error("Error exiting the group:", error);
+      res.status(500).json({
+        message: "Error exiting the group.",
+        error,
+      });
+    }
   }
 }

@@ -3,19 +3,19 @@ import ResponsiveDialog from "../responsive-dialog";
 import TableRow from "../table-row";
 import { MdGroup, MdContacts } from "react-icons/md";
 import NewContactForm from "../forms/new-contact-form";
-import { useState } from "react";
-import NewGroupForm from "../forms/new-grp-form";
+import { useEffect, useState } from "react";
+import GroupForm from "../forms/grp-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import getId, { formatAvatarName } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
-import { ContactType, GroupType } from "@/types";
-import { a } from "@/data";
+import { ContactType, ConversationStateType } from "@/types";
 import { Button } from "../ui/button";
 import { Check, Loader } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import api from "@/api/axios";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrentView, useCurrentConversation } from "@/store";
 
 export default function New() {
   const { data, isLoading, isError, error } = useQuery({
@@ -79,26 +79,42 @@ export default function New() {
   );
 }
 
+type GroupType = {
+  name: string;
+  avatar: string | null;
+};
+
 function AddMembers(props: GroupType) {
+  const { changeView } = useCurrentView();
+  const { changeCurrentConversation } = useCurrentConversation();
   const [added, setAdded] = useState<ContactType[]>([]);
-  const [result, setResult] = useState<ContactType[]>(a);
+  const [filteredMembers, setFilteredMembers] = useState<ContactType[]>([]);
   const [submitting, setIsSubmitting] = useState(false);
 
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["contacts"],
+    queryFn: async () => {
+      const res = await api.get(`/contacts?id=${getId()}`);
+      return res.data.data;
+    },
+  });
+
   function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    setResult(
-      a.filter((person: ContactType) => {
+    setFilteredMembers(
+      data.filter((person: ContactType) => {
         return person.name.toLowerCase().includes(e.target.value.toLowerCase());
       })
     );
   }
   function addToGrp(newPerson: ContactType) {
     const isAdded = added.filter((person) => {
-      return newPerson.name === person.name;
+      return newPerson.id === person.id;
     });
+    console.log(isAdded);
     if (isAdded.length) {
       setAdded((prev) =>
         prev.filter((person) => {
-          return newPerson.name !== person.name;
+          return newPerson.id !== person.id;
         })
       );
       return;
@@ -115,11 +131,39 @@ function AddMembers(props: GroupType) {
       }
     }
   }
-  function createGroup() {
+  async function createGroup() {
     setIsSubmitting(true);
+    const participants = added.map((person) => person.id);
+    try {
+      const res = await api.post(`/conversations?id=${getId()}`, {
+        participants,
+        conversationType: "GROUP",
+        name: props.name,
+        avatar: props.avatar,
+      });
+      const data = res.data;
+      console.log(data);
+
+      const newConversation: ConversationStateType = {
+        conversationId: data.conversationId,
+        name: props.name,
+        avatar: props.avatar,
+        email: null,
+        participants: [...participants, getId()],
+        conversationType: "GROUP",
+        hasConversation: null,
+      };
+      changeCurrentConversation(newConversation);
+      changeView("message-room");
+    } catch (err) {
+      console.log(err);
+      toast("Error creating group.");
+    }
     console.log(props.name);
     setIsSubmitting(false);
   }
+
+  if (isError) console.log(error);
   return (
     <div className="px-4 space-y-4">
       <div className="rounded-lg border shadow-md">
@@ -130,27 +174,40 @@ function AddMembers(props: GroupType) {
             onChange={handleSearch}
           />
         </div>
-        <ScrollArea className="h-32 md:h-72">
-          {result.map((person: ContactType) => (
-            <div
-              onClick={() => addToGrp(person)}
-              key={person.id}
-              className="relative"
-            >
-              <Person
-                name={person.name}
-                email={person.email}
-                avatar={person.avatar}
-                id={person.id}
-                blocked={person.blocked}
-                hasConversation={person.hasConversation}
-              />
-              {true && (
-                <Check className="absolute top-5 right-4 text-primary" />
-              )}
-            </div>
+        {isLoading &&
+          Array.from({ length: 3 }).map((_, idx) => (
+            <PersonSkeleton key={idx} />
           ))}
-        </ScrollArea>
+        {isError && (
+          <div className="h-[80vh] w-full grid place-items-center">
+            <p className="text-destructive">Something went wrong.</p>
+          </div>
+        )}
+        {data && (
+          <ScrollArea className="h-32 md:h-72">
+            {filteredMembers.map((person: ContactType) => (
+              <div
+                onClick={() => addToGrp(person)}
+                key={person.id}
+                className="relative cursor-pointer"
+              >
+                <div className="pointer-events-none">
+                  <Person
+                    name={person.name}
+                    email={person.email}
+                    avatar={person.avatar}
+                    id={person.id}
+                    blocked={person.blocked}
+                    hasConversation={person.hasConversation}
+                  />
+                </div>
+                {added.some((item) => item.id === person.id) && (
+                  <Check className="absolute top-5 right-4 text-primary" />
+                )}
+              </div>
+            ))}
+          </ScrollArea>
+        )}
       </div>
       <div className="space-y-3">
         <p className="text-sm+">Added Members</p>
@@ -176,20 +233,19 @@ function AddMembers(props: GroupType) {
   );
 }
 
-function NewGrp() {
+export function NewGrp() {
   const [step, setStep] = useState(1);
   const [grpDetails, setGrpDetails] = useState<GroupType>({
     name: "",
-    avatar: "",
-    id: "",
+    avatar: null,
   });
   return (
     <div>
       {step === 1 && (
-        <NewGroupForm setStep={setStep} setGrpDetails={setGrpDetails} />
+        <GroupForm setStep={setStep} setGrpDetails={setGrpDetails} />
       )}
       {step === 2 && (
-        <AddMembers avatar={grpDetails.avatar} id="" name={grpDetails.name} />
+        <AddMembers avatar={grpDetails.avatar} name={grpDetails.name} />
       )}
     </div>
   );

@@ -21,7 +21,12 @@ import { useCurrentUser } from "@/store";
 import { BasicDetailsType } from "@/types";
 import getId from "@/lib/utils";
 import { storage } from "@/lib/firebase-config";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 
 const formSchema = z.object({
   avatar: z.string().optional(),
@@ -96,9 +101,7 @@ export default function EditProfileForm() {
           // delete old avatar
           if (oldFileUrl) {
             const oldFileRef = ref(storage, "avatars/" + oldFileUrl);
-            storage
-              .refFromURL(oldFileUrl)
-              .delete()
+            deleteObject(oldFileRef)
               .then(() => {
                 console.log("File deleted successfully");
               })

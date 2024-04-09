@@ -60,6 +60,7 @@ export function Person(props: ContactType) {
         toast("Someting went wrong");
       }
     } else {
+      console.log("No contact id");
       toast("Something went wrong");
     }
   }

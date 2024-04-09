@@ -3,7 +3,7 @@ import { Conversation } from "../conversation";
 import { Person, PersonSkeleton } from "../person";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useSearch } from "@/store";
-import { ContactType } from "@/types";
+import { ContactType, ConversationType } from "@/types";
 import api from "@/api/axios";
 import { useQuery } from "@tanstack/react-query";
 import getId from "@/lib/utils";
@@ -11,21 +11,23 @@ import getId from "@/lib/utils";
 // CONVERSATION
 export default function Search() {
   const [filteredContacts, setFilteredContacts] = useState<ContactType[]>([]);
-  // const [filteredConversations, setFilteredConversations] = useState<>([]);
+  const [filteredConversations, setFilteredConversations] = useState<
+    ConversationType[]
+  >([]);
   const { searchTerm } = useSearch();
 
-  // const {
-  //   data: contactsData,
-  //   isLoading: isContactsLoading,
-  //   isError: isContactsError,
-  //   error: contactsError,
-  // } = useQuery({
-  //   queryKey: ["conversations"],
-  //   queryFn: async () => {
-  //     const res = await api.get(`/contacts?id=${getId()}`);
-  //     return res.data.data;
-  //   },
-  // });
+  const {
+    data: conversationsData,
+    isLoading: isConversationsLoading,
+    isError: isConversationsError,
+    error: conversationsError,
+  } = useQuery({
+    queryKey: ["all-conversations"],
+    queryFn: async () => {
+      const res = await api.get(`conversations?id=${getId()}`);
+      return res.data.data;
+    },
+  });
   const {
     data: contactsData,
     isLoading: isContactsLoading,
@@ -51,13 +53,29 @@ export default function Search() {
       setFilteredContacts(contactsData);
     }
   }, [searchTerm]);
-
   useEffect(() => {
     setFilteredContacts(contactsData);
   }, [contactsData]);
 
-  if (isContactsError) {
-    console.log(contactsError);
+  useEffect(() => {
+    if (conversationsData) {
+      setFilteredConversations(
+        conversationsData.filter((person: ConversationType) => {
+          return person.name.toLowerCase().includes(searchTerm.toLowerCase());
+        })
+      );
+    }
+    if (searchTerm.length === 0) {
+      setFilteredConversations(conversationsData);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setFilteredConversations(conversationsData);
+  }, [conversationsData]);
+
+  if (isContactsError || isConversationsError) {
+    console.log(contactsError, conversationsError);
   }
   return (
     <div className="w-full">
@@ -69,24 +87,38 @@ export default function Search() {
           </TabsList>
         </div>
         <TabsContent value="conversations" className="mt-0">
-          {/* {results.map((conversation, index) => (
-            <Conversation
-              name={conversation.name}
-              date={new Date()}
-              unreadMessages={12}
-              message="Hello World! This is a test message."
-              avatar=""
-              key={index}
-              type="group"
-              id={index.toString()}
-            />
-          ))} */}
+          {isConversationsLoading &&
+            Array.from({ length: 10 }).map((_, idx) => (
+              <PersonSkeleton key={idx} />
+            ))}
+          {isConversationsError && (
+            <div className="h-[80vh] w-full grid place-items-center">
+              <p className="text-destructive">Something went wrong.</p>
+            </div>
+          )}
+          {conversationsData &&
+            filteredConversations.map((conversation: ConversationType) => (
+              <Conversation
+                id={conversation.id}
+                name={conversation.name}
+                time={conversation.time}
+                lastMessage={conversation.lastMessage}
+                avatar={conversation.avatar}
+                type={conversation.type}
+                key={conversation.id}
+              />
+            ))}
         </TabsContent>
         <TabsContent value="people" className="mt-0">
           {isContactsLoading &&
             Array.from({ length: 10 }).map((_, idx) => (
               <PersonSkeleton key={idx} />
             ))}
+          {isContactsError && (
+            <div className="h-[80vh] w-full grid place-items-center">
+              <p className="text-destructive">Something went wrong.</p>
+            </div>
+          )}
           {contactsData &&
             filteredContacts?.map((person: ContactType) => (
               <Person

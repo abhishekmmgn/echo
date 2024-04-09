@@ -15,13 +15,10 @@ export type ContactType = {
 };
 
 export type ConversationType = {
-  id: string;
-  name: string | null;
+  name: string;
   avatar: string | null;
   lastMessage: string;
-  date: Date;
-  unreadMessages: number;
+  time: string;
+  id: string;
   type: "PRIVATE" | "GROUP";
-  participants: ContactType[];
-  createdBy: string;
 };
