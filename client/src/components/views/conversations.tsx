@@ -36,7 +36,8 @@ export default function Conversations() {
         <Conversation
           id={conversation.id}
           name={conversation.name}
-          time={conversation.time}
+          lastMessageTime={conversation.lastMessageTime}
+          lastMessageType={conversation.lastMessageType}
           lastMessage={conversation.lastMessage}
           avatar={conversation.avatar}
           type={conversation.type}

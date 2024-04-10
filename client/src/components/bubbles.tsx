@@ -1,4 +1,8 @@
-import { formatAvatarName, formatDateTime } from "@/lib/utils";
+import getId, {
+  formatAvatarName,
+  formatDateTime,
+  getFileName,
+} from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { File } from "lucide-react";
 import {
@@ -10,17 +14,20 @@ import {
 import { Separator } from "./ui/separator";
 import { saveAs } from "file-saver";
 import { Skeleton } from "./ui/skeleton";
+import { useCurrentConversation } from "@/store";
+import { useState } from "react";
+import api from "@/api/axios";
 
 interface BubbleInterface {
   sender: "current" | "other";
   name: string;
   avatar: string | null;
   date: string;
+  id: string;
 }
 interface BubbleWrapperInterface extends BubbleInterface {
   type: "TEXT" | "FILE" | "IMAGE" | "CALL";
   fileUrl?: string;
-  fileName?: string;
   children: React.ReactNode;
 }
 
@@ -29,58 +36,76 @@ interface MessageBubbleInterface extends BubbleInterface {
   message: string;
 }
 
-interface FileBubbleInterface extends MessageBubbleInterface {
-  fileName: string;
-}
-
 function BubbleWrapper(props: BubbleWrapperInterface) {
-  function deleteMessage() {}
-  function downloadMessage() {
-    saveAs(props.fileUrl!, props.fileName);
+  const [deleted, setDeleted] = useState(false);
+  const { conversation } = useCurrentConversation();
+  async function deleteMessage() {
+    const res = await api.delete(`/messages/${props.id}?id=${getId()}`);
+    const data = res.data.data;
+    console.log(data);
+    setDeleted(true);
+  }
+  async function downloadMessage() {
+    if (props.fileUrl) {
+      saveAs(props.fileUrl, getFileName(props.fileUrl));
+    }
+  }
+
+  if (deleted) {
+    return <></>;
   }
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <div
-          className={`w-full flex flex-col ${
-            props.sender === "current" && "items-end"
-          }`}
-        >
-          {props.sender === "other" && (
-            <p className="mb-1 text-xs lg:text-xs+ pl-12 text-muted-foreground">
-              {props.name}
-            </p>
-          )}
-          <div
-            className={`flex ${
-              props.sender === "other"
-                ? "gap-2 items-end"
-                : "w-full justify-end"
-            }`}
-          >
-            {props.sender === "other" && (
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={props.avatar || ""} alt={props.name} />
-                <AvatarFallback className="text-xs+">
-                  {formatAvatarName(props.name)}
-                </AvatarFallback>
-              </Avatar>
-            )}
-            {props.children}
-          </div>
-          {/* <p className="mt-1 text-xs lg:text-xs+ pl-12 pr-2 text-muted-foreground">
-            {formatDateTime(props.date)}
-          </p> */}
-        </div>
-      </ContextMenuTrigger>
-      <ContextMenuContent className="w-32">
-        {props.type !== "TEXT" && (
-          <ContextMenuItem onClick={downloadMessage}>Download</ContextMenuItem>
+    <div
+      className={`w-full flex flex-col ${
+        props.sender === "current" && "items-end"
+      }`}
+    >
+      {props.sender === "other" &&
+        conversation.conversationType === "GROUP" && (
+          <p className="mb-1 text-xs lg:text-xs+ pl-12 text-muted-foreground">
+            {props.name}
+          </p>
         )}
-        <Separator />
-        <ContextMenuItem onClick={deleteMessage}>Delete</ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+      <div
+        className={`flex ${
+          props.sender === "other" ? "gap-2 items-end" : "w-full justify-end"
+        }`}
+      >
+        {props.sender === "other" && (
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={props.avatar || ""} alt={props.name} />
+            <AvatarFallback className="text-xs+">
+              {formatAvatarName(props.name)}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        <ContextMenu>
+          <ContextMenuTrigger className="w-auto">
+            {props.children}
+          </ContextMenuTrigger>
+          <ContextMenuContent className="w-32">
+            {props.type !== "TEXT" && (
+              <ContextMenuItem
+                className="text-primary"
+                onClick={downloadMessage}
+              >
+                Download
+              </ContextMenuItem>
+            )}
+            <Separator />
+            <ContextMenuItem
+              className="text-destructive"
+              onClick={deleteMessage}
+            >
+              Delete
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      </div>
+      <p className="mt-1 text-xs lg:text-xs+ pl-12 pr-2 text-muted-foreground">
+        {formatDateTime(props.date)}
+      </p>
+    </div>
   );
 }
 
@@ -92,21 +117,22 @@ export function TextBubble(props: MessageBubbleInterface) {
       sender={props.sender}
       date={props.date}
       type="TEXT"
+      id={props.id}
     >
       <div
-        className={`w-fit max-w-[60%] sm:max-w-[80%] lg:max-w-[60%] rounded-[var(--radius)] px-4 py-2 ${
+        className={`max-w-60 sm:max-w-md rounded-[var(--radius)] px-4 py-2 ${
           props.sender === "current"
             ? " bg-primary/80 text-primary-foreground"
             : "bg-secondary"
         }`}
       >
-        <p>{props.message}</p>
+        <p className="break-words">{props.message}</p>
       </div>
     </BubbleWrapper>
   );
 }
 
-export function ImageBubble(props: FileBubbleInterface) {
+export function ImageBubble(props: MessageBubbleInterface) {
   return (
     <BubbleWrapper
       name={props.name}
@@ -115,37 +141,45 @@ export function ImageBubble(props: FileBubbleInterface) {
       date={props.date}
       type="IMAGE"
       fileUrl={props.message}
-      fileName={props.fileName}
+      id={props.id}
     >
       <img
         src={props.message}
-        alt={props.fileName}
-        className="w-3/5 sm:w-1/2 md:w-3/5 lg:w-1/2 xl:w-[30%] bg-muted border-2 aspect-square rounded-[var(--radius)] object-cover"
+        alt={getFileName(props.message)}
+        className="w-64 sm:w-80 bg-muted border-2 aspect-square rounded-[var(--radius)] object-cover"
       />
     </BubbleWrapper>
   );
 }
 
-export function FileBubble(props: FileBubbleInterface) {
+export function FileBubble(props: MessageBubbleInterface) {
   return (
     <BubbleWrapper
       name={props.name}
       avatar={props.avatar}
       sender={props.sender}
       date={props.date}
-      type="FILE"
       fileUrl={props.message}
-      fileName={props.fileName}
+      type="FILE"
+      id={props.id}
     >
       <div
-        className={`w-fit max-w-[60%] sm:max-w-[80%] lg:max-w-[60%] h-10 rounded-[var(--radius)] secondary-foreground/80 flex items-center gap-2 px-3 ${
-          props.sender === "current"
-            ? " bg-primary/80 text-primary-foreground"
-            : "bg-secondary"
-        }`}
+        className={`flex flex-col ${props.sender === "current" && "items-end"}`}
       >
-        <File className="w-4 h-4" />
-        <p>{props.message}</p>
+        <File
+          className={`w-20 h-20 ${
+            props.sender === "current"
+              ? "scale-x-[-1] text-primary/80"
+              : "text-secondary"
+          }`}
+        />
+        <p
+          className={`w-40 text-sm break-all  ${
+            props.sender === "current" && "text-right"
+          }`}
+        >
+          {getFileName(props.message)}
+        </p>
       </div>
     </BubbleWrapper>
   );

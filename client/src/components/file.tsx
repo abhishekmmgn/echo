@@ -1,8 +1,9 @@
 import { Download } from "lucide-react";
+import { saveAs } from "file-saver";
 
 export default function File({ name, url }: { name: string; url: string }) {
   function downloadFile() {
-    // download file
+    saveAs(url, name);
   }
   return (
     <div className="w-full h-14 flex items-center justify-between border-b px-4 gap-4">

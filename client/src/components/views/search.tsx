@@ -101,8 +101,9 @@ export default function Search() {
               <Conversation
                 id={conversation.id}
                 name={conversation.name}
-                time={conversation.time}
                 lastMessage={conversation.lastMessage}
+                lastMessageTime={conversation.lastMessageTime}
+                lastMessageType={conversation.lastMessageType}
                 avatar={conversation.avatar}
                 type={conversation.type}
                 key={conversation.id}

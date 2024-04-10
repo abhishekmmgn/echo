@@ -18,7 +18,8 @@ export type ConversationType = {
   name: string;
   avatar: string | null;
   lastMessage: string;
-  time: string;
+  lastMessageType: string;
+  lastMessageTime: string;
   id: string;
   type: "PRIVATE" | "GROUP";
 };

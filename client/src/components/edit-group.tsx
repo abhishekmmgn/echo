@@ -9,8 +9,7 @@ import { Button } from "./ui/button";
 import { Check, Loader } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import api from "@/api/axios";
-import { dataTagSymbol, useQuery } from "@tanstack/react-query";
-import { useCurrentView, useCurrentConversation } from "@/store";
+import { useCurrentConversation } from "@/store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,6 +28,7 @@ import {
   ref,
   uploadBytes,
 } from "firebase/storage";
+import { useQuery } from "@tanstack/react-query";
 
 const formSchema = z.object({
   name: z

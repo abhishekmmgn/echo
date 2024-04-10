@@ -65,7 +65,8 @@ export async function getAllConversations(req: Request, res: Response) {
           name: name!,
           avatar,
           lastMessage: convo.messages[0]?.content || "",
-          time:
+          lastMessageType: convo.messages[0]?.type,
+          lastMessageTime:
             convo.messages[0]?.createdAt.toString() ||
             convo.createdAt.toString(),
           id: convo.id,
@@ -232,12 +233,13 @@ export async function getConversationDetails(req: Request, res: Response) {
           },
         },
       });
+      const files: string[] = messages.map((message) => message.content);
       return res.status(200).json({
         message: "Conversation found",
         data: {
           participants: conversation.participants,
           isAdmin: conversation.creatorId === id?.toString(),
-          messages,
+          files,
         },
       });
     }
@@ -394,11 +396,27 @@ export async function createConversation(req: Request, res: Response) {
         return { conversation, message };
       });
 
-      res.status(201).json({
+      const formattedConversation = {
+        id: conversation?.id!,
+        name: name!,
+        avatar,
+        type: conversation?.type,
+      };
+      const formattedMessage = {
+        id: result.message.id,
+        content: result.message.content,
+        type: result.message.type,
+        name: result.message.sender.name,
+        avatar: result.message.sender.avatar,
+        time: result.message.createdAt,
+        senderId: result.message.senderId,
+      };
+
+      return res.status(201).json({
         message: "Conversation created successfully",
         data: {
-          conversation: result.conversation,
-          messages: [result.message],
+          conversation: formattedConversation,
+          messages: formattedMessage,
         },
       });
     }

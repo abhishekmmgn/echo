@@ -25,6 +25,7 @@ export function Conversation(props: ConversationType) {
         const res = await api.delete(`/conversations/${props.id}`);
         if (res.status === 200) {
           setDeleted(true);
+          changeCurrentConversation(noConversation);
         }
       } catch (error) {
         console.log(error);
@@ -71,12 +72,14 @@ export function Conversation(props: ConversationType) {
                 {props.name}
               </p>
               <p className="line-clamp-1 text-muted-foreground text-xs max-w-[40%]">
-                {formatDateTime(props.time)}
+                {formatDateTime(props.lastMessageTime)}
               </p>
             </div>
             <div className="w-full flex justify-between">
-              <p className="line-clamp-1 text-sm+ text-muted-foreground max-w-[90%]">
-                {props.lastMessage}
+              <p className="line-clamp-1 text-sm+ text-muted-foreground break-all max-w-[90%]">
+                {props.lastMessageType === "TEXT"
+                  ? props.lastMessage
+                  : props.lastMessageType}
               </p>
               <p className="text-sm text-primary max-w-[10%]">
                 {/* unread messages */}

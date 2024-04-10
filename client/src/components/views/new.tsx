@@ -3,7 +3,7 @@ import ResponsiveDialog from "../responsive-dialog";
 import TableRow from "../table-row";
 import { MdGroup, MdContacts } from "react-icons/md";
 import NewContactForm from "../forms/new-contact-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import GroupForm from "../forms/grp-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import getId, { formatAvatarName } from "@/lib/utils";

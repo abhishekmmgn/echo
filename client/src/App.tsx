@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import api from "@/api/axios";
 import Cookies from "universal-cookie";
 import { BasicDetailsType } from "./types";
-import { AxiosError, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 
 function App() {
   const [error, setError] = useState(false);
@@ -34,8 +34,7 @@ function App() {
   }
   async function fetchCurrentUser() {
     try {
-      // const res = await api.get(`/current_user?email=${user?.email!}`);
-      const res = await api.get(`/current_user?email=abhishekmmgn@gmail.com`);
+      const res = await api.get(`/current_user?email=${user?.email!}`);
       const data: BasicDetailsType = res.data.data;
       // console.log("D: ", data);
       if (!data.id) {
@@ -57,44 +56,42 @@ function App() {
     }
   }
   useEffect(() => {
-    // if (isAuthenticated && !uid) {
-    console.log("In: Run");
-    fetchCurrentUser();
-    // }
+    if (isAuthenticated && !uid) {
+      console.log("In: Run");
+      fetchCurrentUser();
+    }
     console.log("Run");
-  }, []);
-  // }, [isAuthenticated, uid]);
+  }, [isAuthenticated, uid]);
 
-  // if (error) {
-  //   return (
-  //     <div className="h-screen w-screen grid place-items-center">
-  //       <p className="text-destructive selection:bg-destructive">
-  //         Something went wrong
-  //       </p>
-  //     </div>
-  //   );
-  // }
-  // if (isLoading) {
-  //   return (
-  //     <div className="h-screen w-screen grid place-items-center">
-  //       <DefaultSkeleton />
-  //     </div>
-  //   );
-  // }
-  // if (isAuthenticated) {
-  //   if (uid) {
-  //     return <Home />;
-  //   } else {
-  //     return (
-  //       <div className="h-screen w-screen grid place-items-center">
-  //         <DefaultSkeleton />
-  //       </div>
-  //     );
-  //   }
-  // } else {
-  // return <Auth />;
-  return <Home />;
-  // }
+  if (error) {
+    return (
+      <div className="h-screen w-screen grid place-items-center">
+        <p className="text-destructive selection:bg-destructive">
+          Something went wrong
+        </p>
+      </div>
+    );
+  }
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen grid place-items-center">
+        <DefaultSkeleton />
+      </div>
+    );
+  }
+  if (isAuthenticated) {
+    if (uid) {
+      return <Home />;
+    } else {
+      return (
+        <div className="h-screen w-screen grid place-items-center">
+          <DefaultSkeleton />
+        </div>
+      );
+    }
+  } else {
+    return <Auth />;
+  }
 }
 
 export default App;

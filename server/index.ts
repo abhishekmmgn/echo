@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import contactRouter from "./routes/contacts";
 import conversationRouter from "./routes/conversations";
+import messageRouter from "./routes/messages";
 
 const app: Express = express();
 export const prisma = new PrismaClient();
@@ -26,6 +27,7 @@ app.use(bodyParser.json());
 app.use("/current_user", currentUserRouter);
 app.use("/contacts", contactRouter);
 app.use("/conversations", conversationRouter);
+app.use("/messages", messageRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

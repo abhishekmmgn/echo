@@ -1,7 +1,5 @@
 import {
-  BlockedDiv,
   BubbleSkeleton,
-  DateDiv,
   FileBubble,
   ImageBubble,
   TextBubble,
@@ -11,11 +9,18 @@ import { MdAdd, MdSend } from "react-icons/md";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import api from "@/api/axios";
-import getId, { formatAvatarName, noConversation } from "@/lib/utils";
+import getId, {
+  formatAvatarName,
+  getFileName,
+  noConversation,
+} from "@/lib/utils";
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MdCall, MdChevronLeft } from "react-icons/md";
 import { ConversationStateType, MessageType } from "@/types";
+import { storage } from "@/lib/firebase-config";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { File } from "lucide-react";
 
 export default function MessageRoom() {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -25,27 +30,44 @@ export default function MessageRoom() {
   >(null);
   const [message, setMessage] = useState("");
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [fileUploading, setFileUploading] = useState(false);
 
   const { conversation, changeCurrentConversation } = useCurrentConversation();
   const { changeView } = useCurrentView();
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    // console.log(file);
+    console.log(file);
     if (file) {
       if (file.size > 1024 * 1024) {
         toast("File size must be less than 1MB.");
         return;
       }
       setFileUrl(URL.createObjectURL(file));
-      const url = URL.createObjectURL(file);
-      setFileUrl(url);
-      //upload file and seturl
-      //   form.setValue("avatar", uploadUrl);
+      const type = file.type.includes("image") ? "IMAGE" : "FILE";
+      setMessageType(type);
+      const itemRef = ref(
+        storage,
+        `${type.toLowerCase()}s/` + `${file.name}-${Date.now()}`
+      );
+      setFileUploading(true);
+      setMessage("Uploading...");
+      uploadBytes(itemRef, file).then((snapshot) => {
+        getDownloadURL(snapshot.ref).then((downloadURL) => {
+          console.log("File available at", downloadURL);
+          setFileUrl(downloadURL);
+        });
+        toast("Uploaded!");
+        setMessage("Uploaded. Send now.");
+      });
+      setFileUploading(false);
     }
   }
 
-  function sendMessage() {
+  async function sendMessage() {
+    if (fileUploading) {
+      toast("File is still uploading.");
+    }
     if (
       conversation.conversationType === "PRIVATE" &&
       !conversation.hasConversation &&
@@ -54,17 +76,26 @@ export default function MessageRoom() {
     ) {
       createPrivateConversation();
     } else {
-      // send put req.
+      const res = await api.post(`/messages?id=${getId()}`, {
+        conversationId: conversation.conversationId,
+        content: fileUrl || message,
+        messageType: messageType || "TEXT",
+      });
+      const data = res.data.data;
+      console.log(data);
+      setMessages((prev) => [...prev, data]);
     }
+    setFileUrl(null);
     setMessage("");
+    setMessageType(null);
   }
   async function createPrivateConversation() {
     try {
       const res = await api.post(`/conversations?id=${getId()}`, {
         participants: conversation.participants,
-        content: message,
         conversationType: "PRIVATE",
-        messageType,
+        content: fileUrl || message,
+        messageType: messageType || "TEXT",
       });
       const data = res.data;
       // console.log(data);
@@ -78,9 +109,10 @@ export default function MessageRoom() {
         hasConversation: true,
       };
       changeCurrentConversation(newConversation);
-      // setMessages(
-
-      // )
+      setMessages((prev) => [...prev, data.data]);
+      setFileUrl(null);
+      setMessage("");
+      setMessageType(null);
     } catch (err) {
       console.log(err);
       toast("Error creating conversation.");
@@ -92,7 +124,7 @@ export default function MessageRoom() {
       let res;
       const otherUserId = conversation.participants[0];
       if (conversation.conversationId) {
-        console.log("CI: ", conversation.conversationId);
+        // console.log("CI: ", conversation.conversationId);
         res = await api.get(
           `/conversations/conversation?conversationId=${
             conversation.conversationId
@@ -109,13 +141,17 @@ export default function MessageRoom() {
       const newConversation: ConversationStateType = {
         ...conversation,
         conversationId: data.conversation.id,
-        name: data.conversation.name,
-        avatar: data.conversation.avatar,
         hasConversation:
           conversation.conversationType === "PRIVATE" ? true : null,
       };
       changeCurrentConversation(newConversation);
-      setMessages(data.messages);
+      // sort the messages by time
+      const sortedMessages = data.messages.sort(
+        (a: MessageType, b: MessageType) => {
+          return new Date(a.time).getTime() - new Date(b.time).getTime();
+        }
+      );
+      setMessages(sortedMessages);
     } catch (err) {
       console.log(err);
       toast("Error fetching conversation.");
@@ -128,10 +164,9 @@ export default function MessageRoom() {
     if (conversation.conversationId || conversation.hasConversation) {
       getConversation();
     }
-  }, []);
-  // console.log("MR: ", conversation.conversationId);
+  }, [conversation.name]);
   // This should run each time conversation is being changed
-
+  console.log("Render.");
   return (
     <div className="w-full h-full">
       <div className="absolute inset-x-0 top-0 z-10 w-full h-[90px] text-muted-foreground flex items-center justify-between gap-5 px-4 bg-background border-b">
@@ -163,8 +198,8 @@ export default function MessageRoom() {
         />
       </div>
       <div
-        className={`absolute inset-x-0 top-[90px] py-2 flex flex-col px-4 gap-2 overflow-y-scroll ${
-          fileUrl ? "bottom-[140px]" : "bottom-11"
+        className={`absolute inset-x-0 top-[90px] py-3 flex flex-col px-4 gap-4 overflow-y-scroll ${
+          fileUrl ? "bottom-[120px]" : "bottom-11"
         }`}
       >
         {loading &&
@@ -184,6 +219,7 @@ export default function MessageRoom() {
                   avatar={message.avatar}
                   date={message.time}
                   message={message.content}
+                  id={message.id}
                   key={message.id}
                 />
               );
@@ -194,8 +230,8 @@ export default function MessageRoom() {
                   name={message.name}
                   avatar={message.avatar}
                   date={message.time}
-                  fileName=""
                   message={message.content}
+                  id={message.id}
                   key={message.id}
                 />
               );
@@ -206,8 +242,8 @@ export default function MessageRoom() {
                   name={message.name}
                   avatar={message.avatar}
                   date={message.time}
-                  fileName=""
                   message={message.content}
+                  id={message.id}
                   key={message.id}
                 />
               );
@@ -215,8 +251,20 @@ export default function MessageRoom() {
           })}
       </div>
       {fileUrl && (
-        <div className="h-24 flex gap-2 absolute bottom-[52px] inset-x-0 px-5 pt-2">
-          <img src={fileUrl} className="h-20 w-20 rounded-sm" />
+        <div className="h-24 bg-background flex gap-2 absolute bottom-14 inset-x-0 px-5 pt-1">
+          {messageType === "IMAGE" ? (
+            <img
+              src={fileUrl}
+              className={`h-20 aspect-auto rounded-sm ${
+                fileUploading && "opacity-50"
+              }`}
+            />
+          ) : (
+            <div className="h-full flex items-end">
+              <File className="w-20 h-20 text-secondary" />
+              <p className="align-text-bottom">{getFileName(fileUrl)}</p>
+            </div>
+          )}
         </div>
       )}
       <form
@@ -231,7 +279,7 @@ export default function MessageRoom() {
             <MdAdd className="w-8 h-8 p-1 rounded-full cursor-pointer bg-background z-20" />
             <Input
               type="file"
-              className="w-8 h-8 absolute top-0 right-0 bg-transparent"
+              className="w-8 h-8 absolute top-0 right-0 bg-transparent text-background"
               onChange={onFileChange}
             />
           </div>

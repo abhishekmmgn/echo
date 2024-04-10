@@ -1,12 +1,7 @@
-import {
-  MdMenu,
-  MdClose,
-  MdChevronLeft,
-  MdAdd,
-  MdSearch,
-} from "react-icons/md";
+import { MdMenu, MdClose, MdChevronLeft, MdAdd } from "react-icons/md";
 import { Input } from "./ui/input";
 import { useCurrentView, useSearch, useCurrentConversation } from "@/store";
+import { noConversation } from "@/lib/utils";
 
 export function Header({ title }: { title: string }) {
   return (
@@ -32,7 +27,7 @@ export function Navbar() {
             <MdClose
               className="w-6 h-6 cursor-pointer"
               onClick={() => {
-                changeCurrentConversation("", "", "", undefined);
+                changeCurrentConversation(noConversation);
                 changeView("home");
               }}
             />

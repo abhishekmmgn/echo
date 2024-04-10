@@ -1,7 +1,11 @@
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { MdChevronLeft } from "react-icons/md";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import getId, { formatAvatarName, noConversation } from "@/lib/utils";
+import getId, {
+  formatAvatarName,
+  getFileName,
+  noConversation,
+} from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Person } from "../person";
 import { ScrollArea } from "../ui/scroll-area";
@@ -27,7 +31,6 @@ export default function Details() {
     files: null,
   });
 
-  console.log("D: ", conversation.conversationId);
   async function deleteConversation() {
     try {
       const res = await api.delete(
@@ -84,7 +87,7 @@ export default function Details() {
         `/conversations/${conversation.conversationId}/details?id=${getId()}`
       );
       const data = res.data.data;
-      console.log(data);
+      // console.log(data);
       setDetails(data);
       changeCurrentConversation({
         ...conversation,
@@ -98,6 +101,7 @@ export default function Details() {
   useEffect(() => {
     fetchDetails();
   }, []);
+  // console.log(details.files);
   return (
     <div className="overflow-y-scroll">
       <div className="fixed inset-x-0 z-10 top-0 w-full h-12 text-muted-foreground flex items-end gap-5 px-4 bg-background md:sticky">
@@ -144,17 +148,15 @@ export default function Details() {
         {details.files?.length && (
           <div className="px-4 space-y-2">
             <div className="flex justify-between px-4">
-              <p className="text-lg+ md:text-xl font-medium">Files Shared</p>
+              <p className="text-lg+ md:text-xl font-medium">Shared files</p>
               <p className="text-primary md:text-base+ font-medium">
                 {details.files?.length}
               </p>
             </div>
             <ScrollArea className="max-h-80 py-1 border rounded-[--radius] shadow-sm">
-              {details.files?.map(
-                (item: { name: string; url: string }, index) => (
-                  <File name={item.name} url={item.url} key={index} />
-                )
-              )}
+              {details.files?.map((item: string, index) => (
+                <File name={getFileName(item)!} url={item} key={index} />
+              ))}
             </ScrollArea>
           </div>
         )}

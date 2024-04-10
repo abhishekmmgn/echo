@@ -11,7 +11,8 @@ export type ConversationType = {
   name: string;
   avatar: string | null;
   lastMessage: string;
-  time: string;
+  lastMessageTime: string;
+  lastMessageType: "TEXT" | "IMAGE" | "FILE";
   id: string;
   type: "PRIVATE" | "GROUP";
 };

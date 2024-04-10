@@ -64,7 +64,7 @@ export default function Settings() {
           <TableRow title="Email" value={email} />
         </div>
       </div>
-      {/* <div className="grid gap-4">
+      <div className="grid gap-4">
         <h3 className="px-4 font-medium text-primary -mb-4">
           General Settings
         </h3>
@@ -73,7 +73,7 @@ export default function Settings() {
             <ThemeToggle />
           </TableRow>
         </div>
-      </div> */}
+      </div>
       <div className="grid gap-4">
         <h3 className="px-4 font-medium text-primary -mb-2">
           Account Settings
