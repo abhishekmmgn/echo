@@ -19,12 +19,14 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "usehooks-ts";
+import { cn } from "@/lib/utils";
 
 type PropsType = {
   title: string;
   description?: string;
   trigger: React.ReactNode;
   body: React.ReactNode;
+  className?: string;
 };
 export default function ResponsiveTableRow(props: PropsType) {
   const [open, setOpen] = useState(false);
@@ -33,7 +35,9 @@ export default function ResponsiveTableRow(props: PropsType) {
     <>
       {isDesktop ? (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger className="w-full">{props.trigger}</DialogTrigger>
+          <DialogTrigger asChild className={cn("w-full", props.className)}>
+            {props.trigger}
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{props.title}</DialogTitle>
@@ -44,7 +48,9 @@ export default function ResponsiveTableRow(props: PropsType) {
         </Dialog>
       ) : (
         <Drawer>
-          <DrawerTrigger className="w-full">{props.trigger}</DrawerTrigger>
+          <DrawerTrigger asChild className={cn("w-full", props.className)}>
+            {props.trigger}
+          </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>{props.title}</DrawerTitle>

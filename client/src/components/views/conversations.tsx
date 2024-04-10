@@ -11,8 +11,8 @@ export default function Conversations() {
       const res = await api.get(`conversations?id=${getId()}`);
       return res.data.data;
     },
+    refetchInterval: 15000,
   });
-  console.log(data);
 
   if (isLoading) {
     return (
@@ -27,6 +27,13 @@ export default function Conversations() {
     return (
       <div className="h-[80vh] w-full grid place-items-center">
         <p className="text-destructive">Something went wrong.</p>
+      </div>
+    );
+  }
+  if (data.length === 0) {
+    return (
+      <div className="h-[80vh] w-full grid place-items-center">
+        <p>No conversations.</p>
       </div>
     );
   }

@@ -1,10 +1,11 @@
 import {
+  ActivityBubble,
   BubbleSkeleton,
   FileBubble,
   ImageBubble,
   TextBubble,
 } from "../bubbles";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { MdAdd, MdSend } from "react-icons/md";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
@@ -21,7 +22,10 @@ import { ConversationStateType, MessageType } from "@/types";
 import { storage } from "@/lib/firebase-config";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { File } from "lucide-react";
+import { io } from "socket.io-client";
+import { isAxiosError } from "axios";
 
+const socket = io("localhost:5000");
 export default function MessageRoom() {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,16 +35,17 @@ export default function MessageRoom() {
   const [message, setMessage] = useState("");
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
+  const [activity, setActivity] = useState(false);
 
   const { conversation, changeCurrentConversation } = useCurrentConversation();
   const { changeView } = useCurrentView();
 
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     console.log(file);
     if (file) {
-      if (file.size > 1024 * 1024) {
-        toast("File size must be less than 1MB.");
+      if (file.size > 1024 * 1024 * 5) {
+        toast("File size must be less than 5MB.");
         return;
       }
       setFileUrl(URL.createObjectURL(file));
@@ -62,17 +67,19 @@ export default function MessageRoom() {
       });
       setFileUploading(false);
     }
-  }
+  }, []);
 
-  async function sendMessage() {
+  const sendMessage = useCallback(async () => {
+    console.log("Sending message");
     if (fileUploading) {
-      toast("File is still uploading.");
+      toast("File still uploading.");
+      return;
     }
     if (
       conversation.conversationType === "PRIVATE" &&
       !conversation.hasConversation &&
       conversation.participants.length === 1 &&
-      conversation.conversationId === null
+      !conversation.conversationId
     ) {
       createPrivateConversation();
     } else {
@@ -83,12 +90,13 @@ export default function MessageRoom() {
       });
       const data = res.data.data;
       console.log(data);
-      setMessages((prev) => [...prev, data]);
+      socket.emit("message", data);
+      setFileUrl(null);
+      setMessage("");
+      setMessageType(null);
     }
-    setFileUrl(null);
-    setMessage("");
-    setMessageType(null);
-  }
+  }, [conversation, message, fileUrl, messageType]);
+
   async function createPrivateConversation() {
     try {
       const res = await api.post(`/conversations?id=${getId()}`, {
@@ -98,7 +106,7 @@ export default function MessageRoom() {
         messageType: messageType || "TEXT",
       });
       const data = res.data;
-      // console.log(data);
+      console.log(data);
 
       const newConversation: ConversationStateType = {
         ...conversation,
@@ -109,7 +117,7 @@ export default function MessageRoom() {
         hasConversation: true,
       };
       changeCurrentConversation(newConversation);
-      setMessages((prev) => [...prev, data.data]);
+      socket.emit("newConversation", newConversation);
       setFileUrl(null);
       setMessage("");
       setMessageType(null);
@@ -118,43 +126,53 @@ export default function MessageRoom() {
       toast("Error creating conversation.");
     }
   }
+  const fetchConversation = async (url: string) => {
+    try {
+      const res = await api.get(url);
+      const data = res?.data.data;
+      return data;
+    } catch (err) {
+      console.log(err);
+      if (isAxiosError(err) && err?.response?.status! === 404) {
+        console.log("New conversation");
+      } else {
+        toast("Error fetching conversation.");
+      }
+    }
+  };
+
   async function getConversation() {
     setLoading(true);
     try {
-      let res;
       const otherUserId = conversation.participants[0];
-      if (conversation.conversationId) {
-        // console.log("CI: ", conversation.conversationId);
-        res = await api.get(
-          `/conversations/conversation?conversationId=${
+      const url = conversation.conversationId
+        ? `/conversations/conversation?conversationId=${
             conversation.conversationId
           }&id=${getId()}`
+        : `/conversations/conversation?otherUserId=${otherUserId}&id=${getId()}`;
+      const data = await fetchConversation(url);
+
+      if (data) {
+        const newConversation: ConversationStateType = {
+          ...conversation,
+          conversationId: data.conversation.id,
+          hasConversation:
+            conversation.conversationType === "PRIVATE" ? true : null,
+        };
+        changeCurrentConversation(newConversation);
+        const sortedMessages = data.messages.sort(
+          (a: MessageType, b: MessageType) =>
+            new Date(a.time).getTime() - new Date(b.time).getTime()
         );
-      } else if (otherUserId) {
-        // console.log("OU: ", otherUserId);
-        res = await api.get(
-          `/conversations/conversation?otherUserId=${otherUserId}&id=${getId()}`
-        );
+        setMessages(sortedMessages);
       }
-      const data = res?.data.data;
-      // console.log(data);
-      const newConversation: ConversationStateType = {
-        ...conversation,
-        conversationId: data.conversation.id,
-        hasConversation:
-          conversation.conversationType === "PRIVATE" ? true : null,
-      };
-      changeCurrentConversation(newConversation);
-      // sort the messages by time
-      const sortedMessages = data.messages.sort(
-        (a: MessageType, b: MessageType) => {
-          return new Date(a.time).getTime() - new Date(b.time).getTime();
-        }
-      );
-      setMessages(sortedMessages);
     } catch (err) {
-      console.log(err);
-      toast("Error fetching conversation.");
+      if (isAxiosError(err) && err?.response?.status! === 404) {
+        console.log("E: ", err.code);
+        toast("Fuck");
+      } else {
+        // toast("Error fetching conversation.");
+      }
     } finally {
       setLoading(false);
     }
@@ -165,8 +183,47 @@ export default function MessageRoom() {
       getConversation();
     }
   }, [conversation.name]);
-  // This should run each time conversation is being changed
-  console.log("Render.");
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Connected to socket server");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
+
+    socket.on("reconnect", (attemptNumber) => {
+      console.log(
+        `Reconnected to socket server after ${attemptNumber} attempts`
+      );
+    });
+
+    socket.on("message", (data: MessageType) => {
+      setActivity(false);
+      console.log(data);
+      setMessages((prev) => [...prev, data]);
+    });
+
+    socket.on("activity", (data: string) => {
+      console.log(data);
+      setActivity(true);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  console.log("Room renders.");
+
+  const lastMessageRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, activity]);
   return (
     <div className="w-full h-full">
       <div className="absolute inset-x-0 top-0 z-10 w-full h-[90px] text-muted-foreground flex items-center justify-between gap-5 px-4 bg-background border-b">
@@ -198,7 +255,7 @@ export default function MessageRoom() {
         />
       </div>
       <div
-        className={`absolute inset-x-0 top-[90px] py-3 flex flex-col px-4 gap-4 overflow-y-scroll ${
+        className={`absolute inset-x-0 top-[90px] py-4 flex flex-col px-4 space-y-10 overflow-y-scroll ${
           fileUrl ? "bottom-[120px]" : "bottom-11"
         }`}
       >
@@ -249,6 +306,8 @@ export default function MessageRoom() {
               );
             }
           })}
+        {activity && <ActivityBubble />}
+        <div ref={lastMessageRef} />
       </div>
       {fileUrl && (
         <div className="h-24 bg-background flex gap-2 absolute bottom-14 inset-x-0 px-5 pt-1">
@@ -291,7 +350,10 @@ export default function MessageRoom() {
           className={`ml-2 focus-visible:ring-0 ${
             message.length > 1 && "pr-9"
           }`}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            socket.emit("activity", `${conversation.conversationId} is typing`);
+          }}
         />
         <MdSend
           className={`w-5 h-5 -ml-7 text-primary cursor-pointer ${

@@ -134,8 +134,9 @@ export default function Details() {
                 <ResponsiveDialog
                   title="Edit Group"
                   trigger={
-                    <Pencil className="cursor-pointer text-muted-foreground hover:text-primary" />
+                    <Pencil className="w-fit cursor-pointer text-muted-foreground hover:text-primary" />
                   }
+                  className="w-fit"
                   body={<EditGroupForm />}
                 />
               )}
@@ -145,7 +146,7 @@ export default function Details() {
             </p>
           </div>
         </div>
-        {details.files?.length && (
+        {details.files && details.files?.length > 0 && (
           <div className="px-4 space-y-2">
             <div className="flex justify-between px-4">
               <p className="text-lg+ md:text-xl font-medium">Shared files</p>

@@ -60,51 +60,56 @@ function BubbleWrapper(props: BubbleWrapperInterface) {
         props.sender === "current" && "items-end"
       }`}
     >
-      {props.sender === "other" &&
-        conversation.conversationType === "GROUP" && (
-          <p className="mb-1 text-xs lg:text-xs+ pl-12 text-muted-foreground">
-            {props.name}
-          </p>
-        )}
       <div
         className={`flex ${
           props.sender === "other" ? "gap-2 items-end" : "w-full justify-end"
         }`}
       >
-        {props.sender === "other" && (
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={props.avatar || ""} alt={props.name} />
-            <AvatarFallback className="text-xs+">
-              {formatAvatarName(props.name)}
-            </AvatarFallback>
-          </Avatar>
-        )}
-        <ContextMenu>
-          <ContextMenuTrigger className="w-auto">
-            {props.children}
-          </ContextMenuTrigger>
-          <ContextMenuContent className="w-32">
-            {props.type !== "TEXT" && (
-              <ContextMenuItem
-                className="text-primary"
-                onClick={downloadMessage}
-              >
-                Download
-              </ContextMenuItem>
+        {props.sender === "other" &&
+          conversation.conversationType === "GROUP" && (
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={props.avatar || ""} alt={props.name} />
+              <AvatarFallback className="text-xs+">
+                {formatAvatarName(props.name)}
+              </AvatarFallback>
+            </Avatar>
+          )}
+        <div className="-mb-5 flex flex-col gap-[6px] items-end">
+          {props.sender === "other" &&
+            conversation.conversationType === "GROUP" && (
+              <div className="w-full">
+                <p className="text-xs lg:text-xs+ text-muted-foreground">
+                  {props.name}
+                </p>
+              </div>
             )}
-            <Separator />
-            <ContextMenuItem
-              className="text-destructive"
-              onClick={deleteMessage}
-            >
-              Delete
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
+          <ContextMenu>
+            <ContextMenuTrigger className="w-full">
+              {props.children}
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-32">
+              {props.type !== "TEXT" && (
+                <ContextMenuItem
+                  className="text-primary"
+                  onClick={downloadMessage}
+                >
+                  Download
+                </ContextMenuItem>
+              )}
+              <Separator />
+              <ContextMenuItem
+                className="text-destructive"
+                onClick={deleteMessage}
+              >
+                Delete
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+          <p className=" text-xs lg:text-xs+ text-muted-foreground">
+            {formatDateTime(props.date)}
+          </p>
+        </div>
       </div>
-      <p className="mt-1 text-xs lg:text-xs+ pl-12 pr-2 text-muted-foreground">
-        {formatDateTime(props.date)}
-      </p>
     </div>
   );
 }
@@ -131,7 +136,6 @@ export function TextBubble(props: MessageBubbleInterface) {
     </BubbleWrapper>
   );
 }
-
 export function ImageBubble(props: MessageBubbleInterface) {
   return (
     <BubbleWrapper
@@ -225,6 +229,16 @@ export function BubbleSkeleton({ sender }: { sender: "current" | "other" }) {
           <Skeleton className="h-10 w-56 max-w-[60%] sm:max-w-[80%] lg:max-w-[60%] px-4 py-2" />
         </div>
       </div>
+    </div>
+  );
+}
+
+export function ActivityBubble() {
+  return (
+    <div className="w-20 aspect-square rounded-[var(--radius)] py-2 flex items-center justify-center gap-1">
+      <Skeleton className="w-3 h-3" />
+      <Skeleton className="w-3 h-3" />
+      <Skeleton className="w-3 h-3" />
     </div>
   );
 }

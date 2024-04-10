@@ -7,9 +7,7 @@ export default function File({ name, url }: { name: string; url: string }) {
   }
   return (
     <div className="w-full h-14 flex items-center justify-between border-b px-4 gap-4">
-      <div className="">
-        <p className="line-clamp-1 font-medium">{name}</p>
-      </div>
+      <p className="line-clamp-1 font-medium text-wrap break-all">{name}</p>
       <Download
         className="text-muted-foreground/70 cursor-pointer hover:text-muted-foreground/90"
         onClick={downloadFile}

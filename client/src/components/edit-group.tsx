@@ -43,14 +43,15 @@ const formSchema = z.object({
 });
 
 export function EditGroupForm() {
-  const [fileUploading, setFileUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const { conversation, changeCurrentConversation } = useCurrentConversation();
+  const [fileUploading, setFileUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    conversation.avatar
+  );
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: conversation.name!,
-      avatar: conversation.avatar === null ? undefined : conversation.avatar,
     },
   });
 

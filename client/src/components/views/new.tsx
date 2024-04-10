@@ -3,7 +3,7 @@ import ResponsiveDialog from "../responsive-dialog";
 import TableRow from "../table-row";
 import { MdGroup, MdContacts } from "react-icons/md";
 import NewContactForm from "../forms/new-contact-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GroupForm from "../forms/grp-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import getId, { formatAvatarName } from "@/lib/utils";
@@ -63,7 +63,7 @@ export default function New() {
           <p className="text-destructive">Something went wrong.</p>
         </div>
       )}
-      {data &&
+      {data && data.length ? (
         data.map((person: ContactType) => (
           <Person
             id={person.id}
@@ -74,7 +74,12 @@ export default function New() {
             hasConversation={person.hasConversation}
             key={person.id}
           />
-        ))}
+        ))
+      ) : (
+        <div className="h-[80vh] w-full grid place-items-center">
+          <p>No contacts.</p>
+        </div>
+      )}
     </>
   );
 }
@@ -98,6 +103,10 @@ function AddMembers(props: GroupType) {
       return res.data.data;
     },
   });
+
+  useEffect(() => {
+    setFilteredMembers(data);
+  }, [data]);
 
   function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
     setFilteredMembers(

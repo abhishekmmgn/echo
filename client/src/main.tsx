@@ -16,6 +16,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     authorizationParams={{
       redirect_uri: window.location.origin,
     }}
+    useRefreshTokens
+    cacheLocation="localstorage"
   >
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

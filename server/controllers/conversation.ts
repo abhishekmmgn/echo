@@ -356,10 +356,7 @@ export async function createConversation(req: Request, res: Response) {
           data: {
             type: "PRIVATE",
             participants: {
-              connect: [
-                { id: participantIds[0].toString() },
-                { id: participantIds[1].toString() },
-              ],
+              connect: participantIds,
             },
             createdBy: { connect: { id: id?.toString() } },
           },

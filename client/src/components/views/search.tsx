@@ -96,7 +96,7 @@ export default function Search() {
               <p className="text-destructive">Something went wrong.</p>
             </div>
           )}
-          {conversationsData &&
+          {conversationsData && conversationsData.length > 0 ? (
             filteredConversations.map((conversation: ConversationType) => (
               <Conversation
                 id={conversation.id}
@@ -108,7 +108,12 @@ export default function Search() {
                 type={conversation.type}
                 key={conversation.id}
               />
-            ))}
+            ))
+          ) : (
+            <div className="h-[40vh] w-full grid place-items-center">
+              <p>No conversations.</p>
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="people" className="mt-0">
           {isContactsLoading &&
@@ -120,7 +125,7 @@ export default function Search() {
               <p className="text-destructive">Something went wrong.</p>
             </div>
           )}
-          {contactsData &&
+          {contactsData && contactsData.length > 0 ? (
             filteredContacts?.map((person: ContactType) => (
               <Person
                 id={person.id}
@@ -131,7 +136,12 @@ export default function Search() {
                 hasConversation={person.hasConversation}
                 key={person.id}
               />
-            ))}
+            ))
+          ) : (
+            <div className="h-[40vh] w-full grid place-items-center">
+              <p>No contacts.</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
