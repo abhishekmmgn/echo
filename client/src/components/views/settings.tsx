@@ -5,7 +5,7 @@ import { Separator } from "../ui/separator";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCurrentUser } from "@/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import getId, { formatAvatarName } from "@/lib/utils";
+import { getId, formatAvatarName } from "@/lib/utils";
 import { Pencil } from "lucide-react";
 import ResponsiveDialog from "../responsive-dialog";
 import EditProfileForm from "../forms/edit-profile-form";

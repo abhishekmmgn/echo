@@ -19,7 +19,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import api from "@/api/axios";
 import { useCurrentUser } from "@/store";
 import { BasicDetailsType } from "@/types";
-import getId from "@/lib/utils";
+import { getId } from "@/lib/utils";
 import { storage } from "@/lib/firebase-config";
 import {
   deleteObject,

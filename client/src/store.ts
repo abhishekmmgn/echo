@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { ConversationStateType } from "./types";
+import { noConversation } from "./lib/utils";
 
 type Views =
   | "home"
@@ -34,15 +35,7 @@ interface ConversationStateInterface {
   changeCurrentConversation: (newConversation: ConversationStateType) => void;
 }
 const useCurrentConversation = create<ConversationStateInterface>()((set) => ({
-  conversation: {
-    conversationId: "",
-    name: "",
-    avatar: "",
-    email: null,
-    participants: [],
-    conversationType: null,
-    hasConversation: null,
-  },
+  conversation: noConversation,
   changeCurrentConversation: (newConversation: ConversationStateType) =>
     set(() => ({ conversation: newConversation })),
 }));

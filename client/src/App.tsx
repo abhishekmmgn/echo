@@ -35,7 +35,6 @@ function App() {
   async function fetchCurrentUser() {
     try {
       const res = await api.get(`/current_user?email=${user?.email!}`);
-      // const res = await api.get(`/current_user?email=abhishekmmgn@gmail.com`);
       const data: BasicDetailsType = res.data.data;
       // console.log("D: ", data);
       if (!data.id) {

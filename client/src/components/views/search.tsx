@@ -6,7 +6,7 @@ import { useSearch } from "@/store";
 import { ContactType, ConversationType } from "@/types";
 import api from "@/api/axios";
 import { useQuery } from "@tanstack/react-query";
-import getId from "@/lib/utils";
+import { getId } from "@/lib/utils";
 
 // CONVERSATION
 export default function Search() {

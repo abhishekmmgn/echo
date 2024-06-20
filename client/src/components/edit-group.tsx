@@ -1,7 +1,7 @@
 import { Person, PersonSkeleton } from "./person";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import getId, { formatAvatarName } from "@/lib/utils";
+import { getId, formatAvatarName } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import { ContactType, ConversationStateType } from "@/types";

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Loader } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/api/axios";
-import getId from "@/lib/utils";
+import { getId } from "@/lib/utils";
 import { isAxiosError } from "axios";
 
 const formSchema = z.object({

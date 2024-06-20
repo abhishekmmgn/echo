@@ -35,7 +35,7 @@ export default function ResponsiveTableRow(props: PropsType) {
     <>
       {isDesktop ? (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild className={cn("w-full", props.className)}>
+          <DialogTrigger className={cn("w-full", props.className)}>
             {props.trigger}
           </DialogTrigger>
           <DialogContent>

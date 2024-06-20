@@ -1,4 +1,5 @@
-import getId, {
+import {
+  getId,
   formatAvatarName,
   formatDateTime,
   getFileName,

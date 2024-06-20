@@ -1,4 +1,4 @@
-import getId, { formatAvatarName } from "@/lib/utils";
+import { getId, formatAvatarName } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Skeleton } from "./ui/skeleton";
 import { ContactType, ConversationStateType } from "@/types";

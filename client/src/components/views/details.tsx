@@ -1,7 +1,8 @@
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { MdChevronLeft } from "react-icons/md";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import getId, {
+import {
+  getId,
   formatAvatarName,
   getFileName,
   noConversation,

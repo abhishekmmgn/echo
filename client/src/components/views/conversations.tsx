@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Conversation, ConversationSkeleton } from "../conversation";
 import { ConversationType } from "@/types";
 import api from "@/api/axios";
-import getId from "@/lib/utils";
+import { getId } from "@/lib/utils";
 
 export default function Conversations() {
   const { data, isLoading, isError, error } = useQuery({

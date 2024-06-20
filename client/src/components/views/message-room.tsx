@@ -10,10 +10,12 @@ import { MdAdd, MdSend } from "react-icons/md";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import api from "@/api/axios";
-import getId, {
+import {
+  getId,
   formatAvatarName,
   getFileName,
   noConversation,
+  server,
 } from "@/lib/utils";
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,7 +27,7 @@ import { File } from "lucide-react";
 import { io } from "socket.io-client";
 import { isAxiosError } from "axios";
 
-const socket = io("localhost:5000");
+const socket = io(server);
 export default function MessageRoom() {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,23 +50,28 @@ export default function MessageRoom() {
         toast("File size must be less than 5MB.");
         return;
       }
-      setFileUrl(URL.createObjectURL(file));
-      const type = file.type.includes("image") ? "IMAGE" : "FILE";
-      setMessageType(type);
-      const itemRef = ref(
-        storage,
-        `${type.toLowerCase()}s/` + `${file.name}-${Date.now()}`
-      );
-      setFileUploading(true);
-      setMessage("Uploading...");
-      uploadBytes(itemRef, file).then((snapshot) => {
-        getDownloadURL(snapshot.ref).then((downloadURL) => {
-          console.log("File available at", downloadURL);
-          setFileUrl(downloadURL);
+      try {
+        setFileUrl(URL.createObjectURL(file));
+        const type = file.type.includes("image") ? "IMAGE" : "FILE";
+        setMessageType(type);
+        const itemRef = ref(
+          storage,
+          `${type.toLowerCase()}s/` + `---${file.name}---${Date.now()}`
+        );
+        setFileUploading(true);
+        setMessage("Uploading...");
+        uploadBytes(itemRef, file).then((snapshot) => {
+          getDownloadURL(snapshot.ref).then((downloadURL) => {
+            console.log("File available at", downloadURL);
+            setFileUrl(downloadURL);
+          });
+          toast("Uploaded!");
+          setMessage("Uploaded. Send now.");
         });
-        toast("Uploaded!");
-        setMessage("Uploaded. Send now.");
-      });
+      } catch (error) {
+        console.log(error);
+        setMessage("Something went wrong while uploading file.");
+      }
       setFileUploading(false);
     }
   }, []);

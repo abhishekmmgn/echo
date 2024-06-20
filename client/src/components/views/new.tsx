@@ -6,7 +6,7 @@ import NewContactForm from "../forms/new-contact-form";
 import { useEffect, useState } from "react";
 import GroupForm from "../forms/grp-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import getId, { formatAvatarName } from "@/lib/utils";
+import { getId, formatAvatarName } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import { ContactType, ConversationStateType } from "@/types";
