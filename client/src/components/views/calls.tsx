@@ -46,7 +46,8 @@ export default function Calls() {
       socket.emit("call-cancelled", currentConversation.conversationId);
     } else {
       // do webrtc work here.
-      // remove room if there.
+      // remove room if no one there.
+      // else just leave the room
     }
     setCallStatus("ENDED");
     setTimeout(() => {
@@ -61,15 +62,23 @@ export default function Calls() {
 
   useEffect(() => {
     async function getStream() {
-      setStream(
-        await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: true,
-        })
-      );
+      if (cameraActive) {
+        setStream(
+          await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          })
+        );
+      } else {
+        setStream(
+          await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          })
+        );
+      }
     }
     getStream();
-  }, []);
+  }, [cameraActive]);
 
   function switchCall() {
     // switch the call to audio/video
