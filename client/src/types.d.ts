@@ -59,6 +59,7 @@ type CallStateType = {
   email: string | null;
   participants: string[];
   callType: "PRIVATE" | "GROUP" | null;
+  offer?: RTCSessionDescriptionInit;
 };
 
 export type BasicDetailsType = {

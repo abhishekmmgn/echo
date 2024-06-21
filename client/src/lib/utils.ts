@@ -17,6 +17,15 @@ export function formatAvatarName(name: string): string {
   return words.length > 1 ? words[0][0] + words[1][0] : words[0][0];
 }
 
+export function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const secondsRemaining = seconds % 60;
+
+  return `${minutes.toString().padStart(2, "0")}:${secondsRemaining
+    .toString()
+    .padStart(2, "0")}`;
+}
+
 export const noConversation: ConversationStateType = {
   conversationId: "",
   name: "",

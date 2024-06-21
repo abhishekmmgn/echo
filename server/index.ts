@@ -110,11 +110,12 @@ io.on("connection", (socket) => {
     socket.to(conversationId).emit("show-message", message);
   });
   socket.on(
-    "make-call",
+    "outgoing:call",
     (data: {
       userId: string;
       avatar: string | null;
       name: string;
+      offer: RTCSessionDescriptionInit;
       conversationId: string;
       participants: string[];
     }) => {
@@ -129,45 +130,47 @@ io.on("connection", (socket) => {
       data.participants.map((participant: string) => {
         const socketId = uidToSocketIds.get(participant);
         if (socketId && participant !== data.userId) {
-          socket.to(socketId).emit("recieve-call", {
+          socket.to(socketId).emit("incomming:call", {
             avatar: data.avatar,
             name: data.name,
             conversationId: data.conversationId,
+            offer: data.offer,
           });
         }
       });
     }
   );
-  socket.on("call-cancelled", (roomId) => {
+  socket.on("call:cancelled", (roomId) => {
     const index = callRooms.findIndex((room) => room.roomId === roomId);
     if (index !== -1) {
       console.log("Inside call cancelled.", callRooms[index].users);
       callRooms[index].users.map((user: string) => {
         const socketId = uidToSocketIds.get(user);
         if (socketId) {
-          socket.emit("call-cancelled");
+          socket.emit("call:cancelled");
         }
       });
       callRooms.splice(index, 1);
     }
   });
-  socket.on("answer-call", ({ userId, roomId }) => {
+  socket.on("call:accepted", ({ userId, roomId, offer }) => {
     const index = callRooms.findIndex((room) => room.roomId === roomId);
+
     if (index !== -1) {
       callRooms[index].users.push(userId);
       socket.join(roomId); // A user joined, now start webRTC
       callRooms[index].activeUsers++;
       const socketId = uidToSocketIds.get(callRooms[index].createdBy);
       if (socketId) {
-        socket.to(socketId).emit("call-answered", {
+        socket.to(socketId).emit("call:answered", {
           roomId,
+          offer,
         });
       }
-      console.log("Call answered.");
     }
   });
 
-  socket.on("decline-call", ({ userId, roomId }) => {
+  socket.on("call:declined", ({ userId, roomId }) => {
     const index = callRooms.findIndex((room) => room.roomId === roomId);
     if (index !== -1) {
       if (callRooms[index].usersCount === 2) {
@@ -175,7 +178,7 @@ io.on("connection", (socket) => {
         console.log("Call declined");
         const socketId = uidToSocketIds.get(callRooms[index].createdBy);
         if (socketId) {
-          socket.to(socketId).emit("call-declined");
+          socket.to(socketId).emit("call:declined");
         }
         callRooms.splice(index, 1);
       } else {

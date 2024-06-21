@@ -3,22 +3,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { MdCallEnd } from "react-icons/md";
 import { useCurrentCall, useCurrentView } from "@/store";
 import { useSocket } from "@/lib/socket-provider";
+import { useContext } from "react";
+import { PeerContext } from "@/lib/peer-provider";
 
 export default function CallNotification() {
   const { currentCall, changeCurrentCall } = useCurrentCall();
   const { socket } = useSocket();
   const { changeView } = useCurrentView();
 
-  const answerCall = () => {
-    socket.emit("answer-call", {
+  const peer = useContext(PeerContext);
+
+  const answerCall = async () => {
+    // accept the offer and send back the answer
+    if (currentCall.offer) {
+      await peer.setRemoteDescription(
+        new RTCSessionDescription(currentCall.offer)
+      );
+    }
+
+    const offerAnswer = await peer.createAnswer();
+    await peer.setLocalDescription(new RTCSessionDescription(offerAnswer));
+
+    socket.emit("call:accepted", {
       userId: getId(),
       roomId: currentCall.callId,
+      offer: offerAnswer,
     });
-
     changeView("calls");
   };
   const declineCall = () => {
-    socket.emit("decline-call", {
+    // decline the offer and send back the re
+    socket.emit("call:declined", {
       userId: getId(),
       roomId: currentCall.callId,
     });

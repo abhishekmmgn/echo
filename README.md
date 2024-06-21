@@ -23,7 +23,7 @@ A messaging application
 
 - Go to Auth0 and create account.
 
-- Create a new regualar web app (React).
+- Create a new regular web app (React).
 
 - Create a **.env.local** file in the **client** directory.
 
