@@ -10,9 +10,9 @@ import { BasicDetailsType } from "./types";
 import { isAxiosError } from "axios";
 
 function App() {
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<null | string>(null);
   const { isAuthenticated, isLoading, user } = useAuth0();
-  const { uid, changeCurrentUser } = useCurrentUser();
+  const { currentUser, changeCurrentUser } = useCurrentUser();
 
   async function createAccount() {
     try {
@@ -23,18 +23,23 @@ function App() {
       });
       const data: BasicDetailsType = res.data.data;
       console.log(res.data);
-      changeCurrentUser(data.id, data.name, data.avatar, data.email);
+      changeCurrentUser({
+        uid: data.id,
+        name: data.name,
+        avatar: data.avatar,
+        email: data.email,
+      });
       // save id to cookies
       const cookies = new Cookies();
       cookies.set("id", data.id);
     } catch (err) {
       console.error(err);
-      setError(true);
+      setError("Error creating account");
     }
   }
   async function fetchCurrentUser() {
     try {
-      const res = await api.get(`/current_user?email=${user?.email!}`);
+      const res = await api.get(`/current_user?email=${user?.email}`);
       const data: BasicDetailsType = res.data.data;
       // console.log("D: ", data);
       if (!data.id) {
@@ -44,30 +49,34 @@ function App() {
         console.log("User found");
         const cookies = new Cookies();
         cookies.set("id", data.id);
-        changeCurrentUser(data.id, data.name, data.avatar, data.email);
+        changeCurrentUser({
+          uid: data.id,
+          name: data.name,
+          avatar: data.avatar,
+          email: data.email,
+        });
       }
     } catch (err) {
-      if (isAxiosError(err) && err?.response?.status! === 404) {
+      if (isAxiosError(err) && err?.response?.status === 404) {
         console.log("User not found");
+        setError("User not found.");
         createAccount();
       } else {
-        setError(true);
+        setError("Error fetching user.");
       }
     }
   }
   useEffect(() => {
-    if (isAuthenticated && !uid) {
-      console.log("In: Run");
+    if (isAuthenticated && !currentUser.uid) {
       fetchCurrentUser();
     }
-    console.log("Run");
-  }, [isAuthenticated, uid]);
+  }, [isAuthenticated, currentUser.uid]);
 
   if (error) {
     return (
       <div className="h-screen w-screen grid place-items-center">
-        <p className="text-destructive selection:bg-destructive">
-          Something went wrong
+        <p className="text-destructive selection:bg-destructive selection:text-destructive-foreground">
+          {error}
         </p>
       </div>
     );
@@ -80,7 +89,7 @@ function App() {
     );
   }
   if (isAuthenticated) {
-    if (uid) {
+    if (currentUser.uid) {
       return <Home />;
     } else {
       return (

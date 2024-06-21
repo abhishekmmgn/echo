@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 export default function Settings() {
   const { logout } = useAuth0();
-  const { name, avatar, email } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
 
   const cookies = new Cookies();
 
@@ -37,16 +37,16 @@ export default function Settings() {
     <div className="py-2 space-y-6 pb-4">
       <div className="w-full flex gap-4 items-center justify-center p-4 border-b">
         <Avatar className="size-20">
-          <AvatarImage src={avatar || ""} alt={name} />
+          <AvatarImage src={currentUser.avatar || ""} alt={currentUser.name} />
           <AvatarFallback className="text-3xl">
-            {formatAvatarName(name)}
+            {formatAvatarName(currentUser.name)}
           </AvatarFallback>
         </Avatar>
         <div className="w-[calc(100%-120px)]">
           <p className="font-semibold text-2xl capitalize text-secondary-foreground">
-            {name}
+            {currentUser.name}
           </p>
-          <p className="text-sm+ text-muted-foreground">{email}</p>
+          <p className="text-sm+ text-muted-foreground">{currentUser.email}</p>
         </div>
         <div className="flex items-center">
           <ResponsiveDialog
@@ -61,7 +61,7 @@ export default function Settings() {
       <div className="grid gap-4">
         <h3 className="px-4 font-medium text-primary -mb-4">Account Details</h3>
         <div className="rounded-[var(--radius)]">
-          <TableRow title="Email" value={email} />
+          <TableRow title="Email" value={currentUser.email} />
         </div>
       </div>
       <div className="grid gap-4">

@@ -42,14 +42,14 @@ const formSchema = z.object({
 });
 
 export default function EditProfileForm() {
-  const { uid, email, name, avatar, changeCurrentUser } = useCurrentUser();
-  const [avatarUrl, setAvatarUrl] = useState(avatar);
+  const { currentUser, changeCurrentUser } = useCurrentUser();
+  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatar);
   const [fileUploading, setFileUploading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: name,
+      name: currentUser.name,
     },
   });
 
@@ -65,8 +65,13 @@ export default function EditProfileForm() {
       const data: BasicDetailsType = res.data.data;
       if (res.status === 200) {
         toast("Profile updated successfully.");
-        changeCurrentUser(uid, data.name, data.avatar, email);
-        console.log(values, " -> ", name, avatar);
+        changeCurrentUser({
+          uid: currentUser.uid,
+          name: data.name,
+          avatar: data.avatar,
+          email: currentUser.email,
+        });
+        console.log(values, " -> ", currentUser.name, currentUser.avatar);
         form.reset();
       } else {
         toast("Something went wrong");
@@ -80,8 +85,8 @@ export default function EditProfileForm() {
     const oldFileUrl = avatarUrl;
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 256) {
-        toast("File size must be less than 256KB.");
+      if (file.size > 1024 * 1024) {
+        toast("File size must be less than 1MB.");
         return;
       }
       setFileUploading(true);
@@ -163,7 +168,8 @@ export default function EditProfileForm() {
         <Button
           type="submit"
           disabled={
-            (avatarUrl === avatar && form.getValues("name") === name) ||
+            (avatarUrl === currentUser.avatar &&
+              form.getValues("name") === name) ||
             isSubmitting ||
             fileUploading
           }

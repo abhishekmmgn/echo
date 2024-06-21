@@ -48,7 +48,7 @@ export default function ResponsiveTableRow(props: PropsType) {
         </Dialog>
       ) : (
         <Drawer>
-          <DrawerTrigger asChild className={cn("w-full", props.className)}>
+          <DrawerTrigger className={cn("w-full", props.className)}>
             {props.trigger}
           </DrawerTrigger>
           <DrawerContent>

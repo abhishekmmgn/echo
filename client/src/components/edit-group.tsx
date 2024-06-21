@@ -43,15 +43,16 @@ const formSchema = z.object({
 });
 
 export function EditGroupForm() {
-  const { conversation, changeCurrentConversation } = useCurrentConversation();
+  const { currentConversation, changeCurrentConversation } =
+    useCurrentConversation();
   const [fileUploading, setFileUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    conversation.avatar
+    currentConversation.avatar
   );
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: conversation.name!,
+      name: currentConversation.name!,
     },
   });
 
@@ -60,7 +61,7 @@ export function EditGroupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (form.formState.submitCount < 3) {
       const res = await api.put(`/conversations/?id=${getId()}`, {
-        conversationId: conversation.conversationId,
+        conversationId: currentConversation.conversationId,
         operation: "EDIT_DETAILS",
         name: values.name,
         avatar: avatarUrl || null,
@@ -68,7 +69,7 @@ export function EditGroupForm() {
       console.log(res.data.data);
       if (res.status === 200) {
         const newConv: ConversationStateType = {
-          ...conversation,
+          ...currentConversation,
           name: values.name,
           avatar: avatarUrl || null,
         };
@@ -86,8 +87,8 @@ export function EditGroupForm() {
 
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 256) {
-        toast("File size must be less than 256KB.");
+      if (file.size > 1024 * 1024) {
+        toast("File size must be less than 1MB.");
         return;
       }
       setFileUploading(true);
@@ -177,7 +178,8 @@ export function EditGroupForm() {
 }
 
 export function EditMembers() {
-  const { conversation, changeCurrentConversation } = useCurrentConversation();
+  const { currentConversation, changeCurrentConversation } =
+    useCurrentConversation();
   const [added, setAdded] = useState<ContactType[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<ContactType[]>([]);
   const [submitting, setIsSubmitting] = useState(false);
@@ -195,7 +197,7 @@ export function EditMembers() {
       const allItems = [...data];
       // only add those participants which are in the conversation
       const uniqueItems = allItems.filter((person) => {
-        return !conversation.participants.includes(person.id);
+        return !currentConversation.participants.includes(person.id);
       });
       setFilteredMembers(uniqueItems);
     }
@@ -240,7 +242,7 @@ export function EditMembers() {
     const participants = added.map((person) => person.id);
     try {
       const res = await api.put(`/conversations/?id=${getId()}`, {
-        conversationId: conversation.conversationId,
+        conversationId: currentConversation.conversationId,
         operation: "EDIT_PARTICIPANTS",
         participants,
       });
@@ -248,7 +250,7 @@ export function EditMembers() {
       console.log(data);
 
       const newConversation: ConversationStateType = {
-        ...conversation,
+        ...currentConversation,
         participants: res.data.participants,
       };
       changeCurrentConversation(newConversation);

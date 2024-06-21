@@ -71,8 +71,8 @@ export default function GroupForm({
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 256) {
-        toast("File size must be less than 256KB.");
+      if (file.size > 1024 * 1024) {
+        toast("File size must be less than 1MB.");
         return;
       }
       setFileUploading(true);

@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { ConversationStateType } from "./types";
-import { noConversation } from "./lib/utils";
+import { CallStateType, ConversationStateType, UserType } from "./types";
+import { noCall, noConversation } from "./lib/utils";
 
 type Views =
   | "home"
@@ -31,44 +31,44 @@ const useSearch = create<SearchState>()((set) => ({
 }));
 
 interface ConversationStateInterface {
-  conversation: ConversationStateType;
+  currentConversation: ConversationStateType;
   changeCurrentConversation: (newConversation: ConversationStateType) => void;
 }
 const useCurrentConversation = create<ConversationStateInterface>()((set) => ({
-  conversation: noConversation,
+  currentConversation: noConversation,
   changeCurrentConversation: (newConversation: ConversationStateType) =>
-    set(() => ({ conversation: newConversation })),
+    set(() => ({ currentConversation: newConversation })),
+}));
+
+interface CallStateInterface {
+  currentCall: CallStateType;
+  changeCurrentCall: (newCall: CallStateType) => void;
+}
+const useCurrentCall = create<CallStateInterface>()((set) => ({
+  currentCall: noCall,
+  changeCurrentCall: (newCall: CallStateType) =>
+    set(() => ({ currentCall: newCall })),
 }));
 
 interface CurrentUserState {
-  uid: string;
-  name: string;
-  avatar: string | null;
-  email: string;
-  changeCurrentUser: (
-    newUID: string,
-    newName: string,
-    newAvatar: string | null,
-    newEmail: string
-  ) => void;
+  currentUser: UserType;
+  changeCurrentUser: (newUser: UserType) => void;
 }
 const useCurrentUser = create<CurrentUserState>()((set) => ({
-  uid: "",
-  name: "",
-  avatar: "",
-  email: "",
-  changeCurrentUser: (
-    newUID: string,
-    newName: string,
-    newAvatar: string | null,
-    newEmail: string
-  ) =>
-    set(() => ({
-      uid: newUID,
-      name: newName,
-      avatar: newAvatar,
-      email: newEmail,
-    })),
+  currentUser: {
+    uid: "",
+    name: "",
+    avatar: null,
+    email: "",
+  },
+  changeCurrentUser: (newUser: UserType) =>
+    set(() => ({ currentUser: newUser })),
 }));
 
-export { useCurrentView, useSearch, useCurrentConversation, useCurrentUser };
+export {
+  useCurrentView,
+  useSearch,
+  useCurrentConversation,
+  useCurrentUser,
+  useCurrentCall,
+};

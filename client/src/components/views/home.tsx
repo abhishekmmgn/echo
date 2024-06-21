@@ -1,4 +1,4 @@
-import { useCurrentView } from "@/store";
+import { useCurrentCall, useCurrentView } from "@/store";
 import Search from "./search";
 import Settings from "./settings";
 import Conversations from "./conversations";
@@ -9,11 +9,51 @@ import Calls from "./calls";
 import NotFound from "./not-found";
 import { Navbar } from "../navigation";
 import DefaultView from "./default-view";
+import CallNotification from "../call-notification";
+import { useEffect } from "react";
+import { useSocket } from "@/lib/socket-provider";
+import { getId, noCall } from "@/lib/utils";
 
 export default function Home() {
   const { view } = useCurrentView();
+  const { socket } = useSocket();
+  const { currentCall, changeCurrentCall } = useCurrentCall();
+
+  useEffect(() => {
+    socket.emit("setId", getId());
+    return () => {
+      socket.emit("removeId", getId());
+      socket.off("uid-to-socketId");
+    };
+  }, []);
+  // Current behaviour: Person will only be able to take call if it was active in the application while other user called.
+  useEffect(() => {
+    socket.on("call-cancelled", () => {
+      changeCurrentCall(noCall);
+    });
+    socket.on(
+      "recieve-call",
+      (data: {
+        avatar: string | null;
+        name: string;
+        conversationId: string;
+      }) => {
+        changeCurrentCall({
+          ...currentCall,
+          callId: data.conversationId,
+          avatar: data.avatar,
+          name: data.name,
+        });
+      }
+    );
+    return () => {
+      socket.off("recieve-call");
+      socket.off("call-cancelled");
+    };
+  }, []);
+  console.log(socket.id);
   return (
-    <div className="min-h-screen grid md:grid-cols-[1fr_1.5fr] lg:grid-cols-[2fr_3fr] xl:grid-cols-[1fr_2fr]">
+    <div className="min-h-screen grid md:grid-cols-[1fr_1.3fr] lg:grid-cols-[2fr_3fr] xl:grid-cols-[1fr_2fr]">
       <div className="md:border-r">
         {view !== "calls" && view !== "details" && view !== "message-room" && (
           <div className="md:hidden">
@@ -30,6 +70,7 @@ export default function Home() {
               : "pt-32"
           } md:pt-0`}
         >
+          {view !== "message-room" && view !== "calls" && <CallNotification />}
           {view === "home" && <Conversations />}
           {view === "search" && <Search />}
           {view === "settings" && <Settings />}

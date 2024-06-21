@@ -1,4 +1,4 @@
-import { ConversationStateType } from "@/types";
+import { CallStateType, ConversationStateType } from "@/types";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Cookies from "universal-cookie";
@@ -14,16 +14,7 @@ export function getId() {
 
 export function formatAvatarName(name: string): string {
   const words = name.split(" ");
-
-  let firstLetters = [];
-
-  for (let word of words) {
-    if (word.length > 0) {
-      firstLetters.push(word[0]);
-    }
-  }
-
-  return firstLetters.join("");
+  return words.length > 1 ? words[0][0] + words[1][0] : words[0][0];
 }
 
 export const noConversation: ConversationStateType = {
@@ -34,6 +25,15 @@ export const noConversation: ConversationStateType = {
   participants: [],
   conversationType: null,
   hasConversation: null,
+};
+
+export const noCall: CallStateType = {
+  callId: "",
+  name: "",
+  avatar: "",
+  email: null,
+  participants: [],
+  callType: null,
 };
 
 export const server = import.meta.env.VITE_SERVER_DOMAIN;
@@ -61,12 +61,12 @@ export function formatDateTime(dateString: string): string {
 
   // Check if the date is today
   if (inputDate.getTime() === today.getTime()) {
-    return "today";
+    return "Today";
   }
 
   // Check if the date is tomorrow
   if (inputDate.getTime() === tomorrow.getTime()) {
-    return "tomorrow";
+    return "Tomorrow";
   }
 
   // Day names and month names arrays

@@ -150,7 +150,7 @@ function AddMembers(props: GroupType) {
         name: props.name,
         avatar: props.avatar,
       });
-      const data = res.data;
+      const data = res.data.data;
       console.log(data);
 
       const newConversation: ConversationStateType = {

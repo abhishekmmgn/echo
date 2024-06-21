@@ -100,8 +100,6 @@ export async function getConversation(req: Request, res: Response) {
   }
   try {
     let conversation;
-    // console.log("C: ",    conversationId);
-    // return res.status(200);
     if (conversationId) {
       conversation = await prisma.conversation.findUnique({
         where: {
@@ -161,11 +159,15 @@ export async function getConversation(req: Request, res: Response) {
           avatar = otherParticipant.avatar;
         }
       }
+      const participantIds = conversation.participants.map(
+        (participant) => participant.id
+      );
       const formattedConversation = {
         id: conversation.id,
         name: name!,
         avatar,
         type: conversation.type,
+        participants: participantIds,
       };
       const formattedMessages = messages.map((message) => {
         return {
@@ -309,18 +311,18 @@ export async function createConversation(req: Request, res: Response) {
         },
       });
     } else if (conversationType === "PRIVATE") {
-      let conversation = await prisma.conversation.findFirst({
+      const conversation = await prisma.conversation.findFirst({
         where: {
           type: "PRIVATE",
           AND: [
             {
               participants: {
-                some: { id: participantIds[0].toString() },
+                some: { id: participantIds[0].id.toString() },
               },
             },
             {
               participants: {
-                some: { id: participantIds[1].toString() },
+                some: { id: participantIds[1].id.toString() },
               },
             },
           ],
@@ -382,7 +384,7 @@ export async function createConversation(req: Request, res: Response) {
           where: {
             userId_contactId: {
               userId: id?.toString()!,
-              contactId: participantIds[0].toString(),
+              contactId: participantIds[0].id.toString(),
             },
           },
           data: {
@@ -394,10 +396,10 @@ export async function createConversation(req: Request, res: Response) {
       });
 
       const formattedConversation = {
-        id: conversation?.id!,
+        id: result.conversation?.id!,
         name: name!,
         avatar,
-        type: conversation?.type,
+        type: result.conversation?.type,
       };
       const formattedMessage = {
         id: result.message.id,
@@ -461,9 +463,12 @@ export async function deleteConversation(req: Request, res: Response) {
       // If the conversation is private, update hasConversation for participants
       if (conversation.type === "PRIVATE") {
         const participantIds = conversation.participants.map((p) => p.id);
-        await prisma.contact.updateMany({
+        await prisma.contact.update({
           where: {
-            id: { in: participantIds },
+            userId_contactId: {
+              userId: participantIds[0],
+              contactId: participantIds[1],
+            },
           },
           data: {
             hasConversation: false,
@@ -495,8 +500,6 @@ export async function editConversation(req: Request, res: Response) {
       message: "Id, conversation id and operation are required",
     });
   }
-  console.log("Here.");
-
   if (operation === "EXIT_GROUP") {
     try {
       // Fetch the conversation type and participants

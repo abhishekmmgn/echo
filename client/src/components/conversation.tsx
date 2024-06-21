@@ -14,18 +14,20 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export function Conversation(props: ConversationType) {
-  const { conversation, changeCurrentConversation } = useCurrentConversation();
+  const { currentConversation, changeCurrentConversation } =
+    useCurrentConversation();
   const { changeView } = useCurrentView();
   const [deleted, setDeleted] = useState(false);
 
-  const active: boolean = props.id === conversation.conversationId;
+  const active: boolean = props.id === currentConversation.conversationId;
   async function deleteConversation() {
     if (props.id) {
       try {
         const res = await api.delete(`/conversations/${props.id}`);
         if (res.status === 200) {
-          setDeleted(true);
           changeCurrentConversation(noConversation);
+          changeView("home");
+          setDeleted(true);
         }
       } catch (error) {
         console.log(error);
