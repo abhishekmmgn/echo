@@ -123,7 +123,7 @@ io.on("connection", (socket) => {
       callRooms.push({
         createdBy: data.userId,
         roomId: data.conversationId,
-        users: [data.userId],
+        users: data.participants,
         usersCount: data.participants.length,
         activeUsers: 1,
       });
@@ -143,30 +143,33 @@ io.on("connection", (socket) => {
   socket.on("call:cancelled", (roomId) => {
     const index = callRooms.findIndex((room) => room.roomId === roomId);
     if (index !== -1) {
-      console.log("Inside call cancelled.", callRooms[index].users);
+      console.log("Call cancelled.", callRooms[index].users);
       callRooms[index].users.map((user: string) => {
         const socketId = uidToSocketIds.get(user);
         if (socketId) {
-          socket.emit("call:cancelled");
+          socket.to(socketId).emit("cancelled:call");
         }
       });
       callRooms.splice(index, 1);
     }
   });
-  socket.on("call:accepted", ({ userId, roomId, offer }) => {
+  socket.on("call:accepted", ({ userId, roomId, answer }) => {
     const index = callRooms.findIndex((room) => room.roomId === roomId);
 
     if (index !== -1) {
       callRooms[index].users.push(userId);
       socket.join(roomId); // A user joined, now start webRTC
       callRooms[index].activeUsers++;
-      const socketId = uidToSocketIds.get(callRooms[index].createdBy);
-      if (socketId) {
-        socket.to(socketId).emit("call:answered", {
-          roomId,
-          offer,
-        });
-      }
+      // send answer to the creator
+      callRooms[index].users.map((user: string) => {
+        const socketId = uidToSocketIds.get(user);
+        if (socketId) {
+          socket.to(socketId).emit("answered:call", {
+            roomId,
+            answer,
+          });
+        }
+      });
     }
   });
 
@@ -178,7 +181,7 @@ io.on("connection", (socket) => {
         console.log("Call declined");
         const socketId = uidToSocketIds.get(callRooms[index].createdBy);
         if (socketId) {
-          socket.to(socketId).emit("call:declined");
+          socket.to(socketId).emit("declined:call");
         }
         callRooms.splice(index, 1);
       } else {

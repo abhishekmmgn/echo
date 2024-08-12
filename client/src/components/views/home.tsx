@@ -29,7 +29,8 @@ export default function Home() {
   }, []);
   // Current behaviour: Person will only be able to take call if it was active in the application while other user called.
   useEffect(() => {
-    socket.on("call:cancelled", () => {
+    socket.on("cancelled:call", () => {
+      console.log("Call cancelled by other user");
       changeCurrentCall(noCall);
     });
     socket.on(

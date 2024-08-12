@@ -177,7 +177,11 @@ export default function MessageRoom() {
             {currentConversation.name}
           </p>
         </div>
-        <MdCall className="w-6 h-6 cursor-pointer" onClick={makeCall} />
+        {currentConversation.conversationType === "PRIVATE" ? (
+          <MdCall className="w-6 h-6 cursor-pointer" onClick={makeCall} />
+        ) : (
+          <MdCall className="invisible" />
+        )}
       </div>
       <div className="absolute inset-x-0 top-[90px] py-4 flex flex-col px-4 space-y-10 overflow-y-scroll bottom-11">
         <div className="sticky inset-x-0 -top-4 z-10 -mx-4">

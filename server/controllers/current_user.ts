@@ -55,6 +55,7 @@ export async function createNewUser(req: Request, res: Response) {
 
 export async function getBasicDetails(req: Request, res: Response) {
   const email = req.query.email;
+  console.log(email);
   if (!email) {
     return res.status(400).json({ error: "Email required" });
   }
@@ -81,6 +82,7 @@ export async function getBasicDetails(req: Request, res: Response) {
       },
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: "Failed to fetch user details",
     });

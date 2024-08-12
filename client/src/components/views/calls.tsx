@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext, useRef, useCallback } from "react";
 import {
   useCurrentCall,
   useCurrentConversation,
@@ -34,6 +34,7 @@ export default function Calls() {
   const { changeView } = useCurrentView();
   const { currentConversation } = useCurrentConversation();
   const { currentUser } = useCurrentUser();
+
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
@@ -41,15 +42,11 @@ export default function Calls() {
 
   const peer = useContext(PeerContext);
 
-  // console.log(peer);
-  // time tracking
-  // calling
-
   function endCall() {
-    if (callStatus === "DIALING" && !currentCall.callId) {
+    if (callStatus === "DIALING") {
       socket.emit("call:cancelled", currentConversation.conversationId);
     } else {
-      //
+      // drop the rtc connection
     }
     setCallStatus("ENDED");
     setTimeout(() => {
@@ -62,36 +59,39 @@ export default function Calls() {
     }, 1000);
   }
 
-  async function getStream() {
+  const sendStream = useCallback(async () => {
+    if (stream) {
+      for (const track of stream.getTracks()) {
+        peer?.addTrack(track, stream);
+      }
+    }
+  }, []);
+
+  const getStream = useCallback(async () => {
+    let newStream: MediaStream | null = null;
     if (screenSharing) {
-      const newStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          displaySurface: "browser",
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-        },
+      newStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
       });
-      setStream(newStream);
-      streamRef.current = newStream;
+      // Capture the screen stream
+      // const screenSteam = await navigator.mediaDevices.getDisplayMedia();
     } else {
       if (cameraActive) {
-        const newStream = await navigator.mediaDevices.getUserMedia({
+        newStream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: true,
         });
-        setStream(newStream);
-        streamRef.current = newStream;
       } else {
-        const newStream = await navigator.mediaDevices.getUserMedia({
+        newStream = await navigator.mediaDevices.getUserMedia({
           audio: true,
+          video: false,
         });
-        setStream(newStream);
-        streamRef.current = newStream;
       }
     }
-  }
+    sendStream();
+    setStream(newStream);
+    streamRef.current = newStream;
+  }, []);
 
   function switchCall() {
     setScreenSharing(false);
@@ -151,12 +151,14 @@ export default function Calls() {
 
     async function offerAccepted(data: {
       roomId: string;
-      offer: RTCSessionDescriptionInit;
+      answer: RTCSessionDescriptionInit;
     }) {
+      console.log("Accepted call: ", data);
+      console.log("Signaling state: ", peer.signalingState);
       try {
-        if (peer.signalingState === "stable") {
+        if (peer.signalingState === "have-local-offer") {
           await peer.setRemoteDescription(
-            new RTCSessionDescription(data.offer)
+            new RTCSessionDescription(data.answer)
           );
           if (!currentCall.callId) {
             setCallStatus("ACTIVE");
@@ -168,7 +170,7 @@ export default function Calls() {
             "Peer connection not in stable state, queuing remote description. Current state:",
             peer.signalingState
           );
-          pendingRemoteDescription = data.offer;
+          pendingRemoteDescription = data.answer;
         }
       } catch (error) {
         console.error("Error setting remote description:", error);
@@ -176,6 +178,7 @@ export default function Calls() {
     }
 
     function offerDeclined() {
+      console.log("Declined call");
       setCallStatus("DECLINED");
       setTimeout(() => {
         changeCurrentCall(noCall);
@@ -205,8 +208,8 @@ export default function Calls() {
 
     peer.addEventListener("signalingstatechange", handleSignalingStateChange);
 
-    socket.on("call:answered", offerAccepted);
-    socket.on("call:declined", offerDeclined);
+    socket.on("answered:call", offerAccepted);
+    socket.on("declined:call", offerDeclined);
 
     return () => {
       peer.removeEventListener(
@@ -227,7 +230,7 @@ export default function Calls() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [callStatus]);
+  }, [callStatus, remoteStream]);
 
   // set local stream
   useEffect(() => {
@@ -245,15 +248,24 @@ export default function Calls() {
     };
   }, [cameraActive, screenSharing]);
 
+  const handleTrackEvent = useCallback(
+    (ev: RTCTrackEvent) => {
+      if (!remoteStream) {
+        const newRemoteStream = new MediaStream();
+        newRemoteStream.addTrack(ev.track);
+        console.log("Received remote track", ev.track);
+        setRemoteStream(newRemoteStream);
+      } else {
+        // Add track to existing remote stream
+        remoteStream.addTrack(ev.track);
+        setRemoteStream(new MediaStream(remoteStream.getTracks())); // Update state to trigger re-render
+      }
+    },
+    [remoteStream]
+  );
+
   // set remote stream
   useEffect(() => {
-    function handleTrackEvent(ev: RTCTrackEvent) {
-      const remoteStream = new MediaStream();
-      remoteStream.addTrack(ev.track);
-      console.log("Received remote track", ev.track);
-      setRemoteStream(remoteStream);
-    }
-
     peer.addEventListener("track", handleTrackEvent);
 
     return () => {
@@ -261,48 +273,17 @@ export default function Calls() {
     };
   }, []);
 
-  console.log(remoteStream);
+  // console.log("---", currentCall.callId);
+  console.log("S: ", stream, "RS: ", remoteStream);
   return (
     <div className="fixed inset-0 md:relative h-screen bg-secondary/5 flex flex-col justify-between items-center gap-5 p-5 px-4 sm:px-0">
-      {cameraActive || screenSharing ? (
-        <div className="w-full max-w-sm sm:max-w-lg flex items-center justify-center+ gap-4">
-          <Avatar className="w-20 h-20 bg-secondary rounded-full sm:w-24 sm:h-24 text-3xl sm:text-4xl">
-            <AvatarImage
-              src={currentCall.avatar || ""}
-              alt={currentCall.name!}
-            />
-            <AvatarFallback>
-              {formatAvatarName(currentCall.name!)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="space-y-1">
-            <h1 className="font-medium text-secondary-foreground text-3xl sm:text-4xl">
-              {currentCall.name}
-            </h1>
-            <div className="flex gap-2">
-              <p className="text-sm text-muted-foreground">
-                {callStatus !== "ACTIVE" && callStatus}
-              </p>
-              {callStatus === "ACTIVE" && (
-                <p className="text-sm text-muted-foreground">
-                  {formatTime(time)}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="w-full max-w-sm sm:max-w-lg flex flex-col items-center text-center gap-4">
-          <Avatar className="w-24 h-24 bg-secondary rounded-full sm:w-32 sm:h-32 text-3xl sm:text-4xl">
-            <AvatarImage
-              src={currentCall.avatar || ""}
-              alt={currentCall.name!}
-            />
-            <AvatarFallback>
-              {formatAvatarName(currentCall.name!)}
-            </AvatarFallback>
-          </Avatar>
-          <h1 className="-mb-4 font-medium text-secondary-foreground text-3xl sm:text-4xl">
+      <div className="w-full max-w-sm sm:max-w-lg flex items-center justify-center+ gap-4">
+        <Avatar className="w-20 h-20 bg-secondary rounded-full sm:w-24 sm:h-24 text-3xl sm:text-4xl">
+          <AvatarImage src={currentCall.avatar || ""} alt={currentCall.name!} />
+          <AvatarFallback>{formatAvatarName(currentCall.name!)}</AvatarFallback>
+        </Avatar>
+        <div className="space-y-1">
+          <h1 className="font-medium text-secondary-foreground text-3xl sm:text-4xl">
             {currentCall.name}
           </h1>
           <div className="flex gap-2">
@@ -316,39 +297,36 @@ export default function Calls() {
             )}
           </div>
         </div>
-      )}
-      {cameraActive && (
-        <div className="w-full h-full max-w-sm sm:max-w-2xl rounded-[var(--radius)] relative">
-          <div className="bg-secondary w-full h-auto aspect-[4/3] object-cover rounded-[var(--radius)]">
-            {stream !== null && (
-              <ReactPlayer
-                muted
-                playing
-                url={stream}
-                height="100%"
-                width="100%"
-                style={{
-                  borderRadius: "12px",
-                }}
-              />
-            )}
-          </div>
-          <div className="bg-muted absolute bottom-2 right-2 w-40 h-auto aspect-[4/3] object-cover rounded-[var(--radius)] sm:w-44 md:w-48 shadow-sm">
-            {remoteStream !== null && (
-              <ReactPlayer
-                url={remoteStream}
-                playing
-                muted
-                height="100%"
-                width="100%"
-                style={{
-                  borderRadius: "12px",
-                }}
-              />
-            )}
-          </div>
+      </div>
+      <div className="w-full h-full max-w-sm sm:max-w-2xl rounded-[var(--radius)] relative">
+        <div className="bg-secondary w-full h-auto aspect-[4/3] object-cover rounded-[var(--radius)]">
+          {stream && (
+            <ReactPlayer
+              playing
+              url={stream}
+              height="100%"
+              width="100%"
+              style={{
+                borderRadius: "12px",
+              }}
+            />
+          )}
         </div>
-      )}
+        <div className="bg-muted absolute bottom-2 right-2 w-40 h-auto aspect-[4/3] object-cover rounded-[var(--radius)] sm:w-44 md:w-48 shadow-sm">
+          {remoteStream && (
+            <ReactPlayer
+              url={remoteStream}
+              playing
+              muted={false}
+              height="100%"
+              width="100%"
+              style={{
+                borderRadius: "12px",
+              }}
+            />
+          )}
+        </div>
+      </div>
       <div
         className={`w-full max-w-sm sm:max-w-lg flex items-center justify-between lg:justify-between ${
           cameraActive || screenSharing ? "justify-evenly" : "sm:justify-evenly"

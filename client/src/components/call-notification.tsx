@@ -16,18 +16,20 @@ export default function CallNotification() {
   const answerCall = async () => {
     // accept the offer and send back the answer
     if (currentCall.offer) {
+      console.log("Recieved Offer: ", currentCall.offer);
       await peer.setRemoteDescription(
         new RTCSessionDescription(currentCall.offer)
       );
     }
 
+    // create answer
     const offerAnswer = await peer.createAnswer();
     await peer.setLocalDescription(new RTCSessionDescription(offerAnswer));
 
     socket.emit("call:accepted", {
       userId: getId(),
       roomId: currentCall.callId,
-      offer: offerAnswer,
+      answer: offerAnswer,
     });
     changeView("calls");
   };
