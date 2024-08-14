@@ -8,7 +8,6 @@ import api from "@/api/axios";
 import Cookies from "universal-cookie";
 import { BasicDetailsType } from "./types";
 import { isAxiosError } from "axios";
-import { toast } from "sonner";
 
 function App() {
   const [error, setError] = useState<null | string>(null);
@@ -70,6 +69,11 @@ function App() {
   useEffect(() => {
     if (isAuthenticated && !currentUser.uid) {
       fetchCurrentUser();
+    } else {
+      console.log("Not authenticated");
+      setTimeout(() => {
+        localStorage.setItem("coldStarted", "true");
+      }, 3000);
     }
   }, [isAuthenticated, currentUser.uid]);
 
@@ -83,7 +87,6 @@ function App() {
     );
   }
   if (isLoading) {
-    toast("It might take a while to load due to cold start.");
     return (
       <div className="h-screen w-screen grid place-items-center">
         <DefaultSkeleton />
