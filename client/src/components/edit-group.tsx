@@ -21,13 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { storage } from "@/lib/firebase-config";
-import {
-  getDownloadURL,
-  deleteObject,
-  ref,
-  uploadBytes,
-} from "firebase/storage";
 import { useQuery } from "@tanstack/react-query";
 
 const formSchema = z.object({
@@ -82,9 +75,13 @@ export function EditGroupForm() {
       );
     }
   }
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const oldFileUrl = avatarUrl;
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { getDownloadURL, ref, uploadBytes, deleteObject } = await import(
+      "firebase/storage"
+    );
+    const { storage } = await import("@/lib/firebase-config");
 
+    const oldFileUrl = avatarUrl;
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {

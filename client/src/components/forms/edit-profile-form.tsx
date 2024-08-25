@@ -20,13 +20,6 @@ import api from "@/api/axios";
 import { useCurrentUser } from "@/store";
 import { BasicDetailsType } from "@/types";
 import { getId } from "@/lib/utils";
-import { storage } from "@/lib/firebase-config";
-import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytes,
-} from "firebase/storage";
 
 const formSchema = z.object({
   avatar: z.string().optional(),
@@ -81,7 +74,12 @@ export default function EditProfileForm() {
     }
   }
 
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { getDownloadURL, ref, uploadBytes, deleteObject } = await import(
+      "firebase/storage"
+    );
+    const { storage } = await import("@/lib/firebase-config");
+
     const oldFileUrl = avatarUrl;
     const file = e.target.files?.[0];
     if (file) {

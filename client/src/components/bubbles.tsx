@@ -151,6 +151,7 @@ export function ImageBubble(props: MessageBubbleInterface) {
       <img
         src={props.message}
         alt={getFileName(props.message)}
+        loading="lazy"
         className="w-64 sm:w-80 bg-muted border-2 aspect-square rounded-[var(--radius)] object-cover"
       />
     </BubbleWrapper>

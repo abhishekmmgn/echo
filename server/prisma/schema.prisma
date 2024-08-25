@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = "postgresql://netdesertthethirdman:InEdsjfzvq6Z1xkOO4O_Uw@echo-app-4679.7s5.aws-ap-south-1.cockroachlabs.cloud:26257/echo?sslmode=verify-full"
+  url      = env("DATABASE_URI")
 }
 
 enum MessageType {

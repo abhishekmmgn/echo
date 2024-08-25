@@ -2,10 +2,12 @@ import path from "path";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+import removeConsole from "vite-plugin-remove-console";
 
 export default defineConfig({
   plugins: [
     react(),
+    removeConsole(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],

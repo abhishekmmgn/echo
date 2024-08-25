@@ -1,13 +1,13 @@
-import Auth from "@/components/views/auth";
-import Home from "@/components/views/home";
 import { useAuth0 } from "@auth0/auth0-react";
 import { DefaultSkeleton } from "./components/default-loading";
 import { useCurrentUser } from "@/store";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import api from "@/api/axios";
 import Cookies from "universal-cookie";
 import { BasicDetailsType } from "./types";
-import { isAxiosError } from "axios";
+
+const Auth = lazy(() => import("@/components/views/auth"));
+const Home = lazy(() => import("@/components/views/home"));
 
 function App() {
   const [error, setError] = useState<null | string>(null);
@@ -38,6 +38,8 @@ function App() {
     }
   }
   async function fetchCurrentUser() {
+    const { isAxiosError } = await import("axios");
+
     try {
       const res = await api.get(`/current_user?email=${user?.email}`);
       const data: BasicDetailsType = res.data.data;
@@ -95,7 +97,11 @@ function App() {
   }
   if (isAuthenticated) {
     if (currentUser.uid) {
-      return <Home />;
+      return (
+        <Suspense fallback={<DefaultSkeleton />}>
+          <Home />
+        </Suspense>
+      );
     } else {
       return (
         <div className="h-screen w-screen grid place-items-center">
@@ -104,7 +110,11 @@ function App() {
       );
     }
   } else {
-    return <Auth />;
+    return (
+      <Suspense fallback={<DefaultSkeleton />}>
+        <Auth />;
+      </Suspense>
+    );
   }
 }
 

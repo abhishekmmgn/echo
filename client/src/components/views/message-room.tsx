@@ -24,8 +24,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MdCall, MdChevronLeft } from "react-icons/md";
 import { ConversationStateType, MessageType } from "@/types";
-import { storage } from "@/lib/firebase-config";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { File } from "lucide-react";
 import { isAxiosError } from "axios";
 import { useSocket } from "@/lib/socket-provider";
@@ -258,38 +256,47 @@ function SendMessage({
   const { currentConversation, changeCurrentConversation } =
     useCurrentConversation();
 
-  const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    console.log(file);
-    if (file) {
-      if (file.size > 1024 * 1024 * 5) {
-        toast("File size must be less than 5MB.");
-        return;
-      }
-      try {
-        setFileUrl(URL.createObjectURL(file));
-        const type = file.type.includes("image") ? "IMAGE" : "FILE";
-        setMessageType(type);
-        const itemRef = ref(
-          storage,
-          `${type.toLowerCase()}s/` + `---${file.name}---${Date.now()}`
-        );
-        setFileUploading(true);
-        setMessage("Uploading...");
-        uploadBytes(itemRef, file).then((snapshot) => {
-          getDownloadURL(snapshot.ref).then((downloadURL) => {
-            console.log("File available at", downloadURL);
-            setFileUrl(downloadURL);
+  const onFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      console.log(file);
+
+      const { getDownloadURL, ref, uploadBytes } = await import(
+        "firebase/storage"
+      );
+      const { storage } = await import("@/lib/firebase-config");
+
+      if (file) {
+        if (file.size > 1024 * 1024 * 5) {
+          toast("File size must be less than 5MB.");
+          return;
+        }
+        try {
+          setFileUrl(URL.createObjectURL(file));
+          const type = file.type.includes("image") ? "IMAGE" : "FILE";
+          setMessageType(type);
+          const itemRef = ref(
+            storage,
+            `${type.toLowerCase()}s/` + `---${file.name}---${Date.now()}`
+          );
+          setFileUploading(true);
+          setMessage("Uploading...");
+          uploadBytes(itemRef, file).then((snapshot) => {
+            getDownloadURL(snapshot.ref).then((downloadURL) => {
+              console.log("File available at", downloadURL);
+              setFileUrl(downloadURL);
+            });
+            setMessage("Uploaded. Send now.");
           });
-          setMessage("Uploaded. Send now.");
-        });
-      } catch (error) {
-        console.log(error);
-        setMessage("Something went wrong while uploading file.");
+        } catch (error) {
+          console.log(error);
+          setMessage("Something went wrong while uploading file.");
+        }
+        setFileUploading(false);
       }
-      setFileUploading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const sendMessage = useCallback(async () => {
     if (fileUploading) {

@@ -15,8 +15,6 @@ import { Loader } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
-import { storage } from "@/lib/firebase-config";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const formSchema = z.object({
   name: z
@@ -68,7 +66,12 @@ export default function GroupForm({
       );
     }
   }
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { getDownloadURL, ref, uploadBytes } = await import(
+      "firebase/storage"
+    );
+    const { storage } = await import("@/lib/firebase-config");
+
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {
