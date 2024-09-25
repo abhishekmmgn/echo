@@ -60,12 +60,12 @@ export function formatDateTime(dateString: string): string {
   const tomorrow = new Date(
     now.getFullYear(),
     now.getMonth(),
-    now.getDate() + 1
+    now.getDate() + 1,
   );
   const inputDate = new Date(
     date.getFullYear(),
     date.getMonth(),
-    date.getDate()
+    date.getDate(),
   );
 
   // Check if the date is today

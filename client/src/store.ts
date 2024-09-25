@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { CallStateType, ConversationStateType, UserType } from "./types";
 import { noCall, noConversation } from "./lib/utils";
+import { CallStateType, ConversationStateType, UserType } from "./types";
 
 type Views =
   | "home"

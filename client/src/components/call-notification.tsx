@@ -1,40 +1,15 @@
-import { formatAvatarName, getId, noCall } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { MdCallEnd } from "react-icons/md";
-import { useCurrentCall, useCurrentView } from "@/store";
 import { useSocket } from "@/lib/socket-provider";
-import { useContext } from "react";
-import { PeerContext } from "@/lib/peer-provider";
+import { formatAvatarName, getId, noCall } from "@/lib/utils";
+import { useCurrentCall, useCurrentView } from "@/store";
+import { MdCallEnd } from "react-icons/md";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default function CallNotification() {
   const { currentCall, changeCurrentCall } = useCurrentCall();
   const { socket } = useSocket();
   const { changeView } = useCurrentView();
 
-  const peer = useContext(PeerContext);
-
-  const answerCall = async () => {
-    // accept the offer and send back the answer
-    if (currentCall.offer) {
-      console.log("Recieved Offer: ", currentCall.offer);
-      await peer.setRemoteDescription(
-        new RTCSessionDescription(currentCall.offer)
-      );
-    }
-
-    // create answer
-    const offerAnswer = await peer.createAnswer();
-    await peer.setLocalDescription(new RTCSessionDescription(offerAnswer));
-
-    socket.emit("call:accepted", {
-      userId: getId(),
-      roomId: currentCall.callId,
-      answer: offerAnswer,
-    });
-    changeView("calls");
-  };
   const declineCall = () => {
-    // decline the offer and send back the re
     socket.emit("call:declined", {
       userId: getId(),
       roomId: currentCall.callId,
@@ -62,7 +37,7 @@ export default function CallNotification() {
         <div className="flex items-center justify-end gap-4 h-full">
           <span
             className="w-11 h-11 grid place-items-center bg-muted hover:bg-muted/80 cursor-pointer rounded-full text-4xl"
-            onClick={answerCall}
+            onClick={() => changeView("calls")}
           >
             <MdCallEnd className="text-primary -rotate-[135deg]" />
           </span>

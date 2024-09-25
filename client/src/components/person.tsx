@@ -1,17 +1,17 @@
-import { getId, formatAvatarName } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Skeleton } from "./ui/skeleton";
-import { ContactType, ConversationStateType } from "@/types";
-import { useCurrentConversation, useCurrentView } from "@/store";
+import api from "@/api/axios";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import api from "@/api/axios";
+import { formatAvatarName, getId } from "@/lib/utils";
+import { useCurrentConversation, useCurrentView } from "@/store";
+import { ContactType, ConversationStateType } from "@/types";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Skeleton } from "./ui/skeleton";
 
 export function Person(props: ContactType) {
   const { changeCurrentConversation } = useCurrentConversation();

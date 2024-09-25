@@ -1,5 +1,5 @@
-import { Download } from "lucide-react";
 import { saveAs } from "file-saver";
+import { Download } from "lucide-react";
 
 export default function File({ name, url }: { name: string; url: string }) {
   function downloadFile() {

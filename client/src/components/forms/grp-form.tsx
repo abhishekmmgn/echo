@@ -1,6 +1,4 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,10 +9,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
-import { toast } from "sonner";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = z.object({
   name: z
@@ -62,7 +62,7 @@ export default function GroupForm({
       setStep(2);
     } else {
       toast(
-        "You have reached the maximum number of attempts. Please try again later."
+        "You have reached the maximum number of attempts. Please try again later.",
       );
     }
   }
@@ -84,7 +84,7 @@ export default function GroupForm({
 
       const avatarsRef = ref(
         storage,
-        "groupAvatars/" + `${file.name}-${Date.now()}`
+        "groupAvatars/" + `${file.name}-${Date.now()}`,
       );
       uploadBytes(avatarsRef, file).then((snapshot) => {
         console.log("Image uploaded!");

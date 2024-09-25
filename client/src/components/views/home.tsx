@@ -1,10 +1,10 @@
-import { useCurrentCall, useCurrentView } from "@/store";
-import { Navbar } from "../navigation";
-import { useEffect, lazy, Suspense } from "react";
+import { PeerProvider } from "@/lib/peer-provider";
 import { useSocket } from "@/lib/socket-provider";
 import { getId, noCall } from "@/lib/utils";
-import { PeerProvider } from "@/lib/peer-provider";
+import { useCurrentCall, useCurrentView } from "@/store";
+import { Suspense, lazy, useEffect } from "react";
 import { DefaultSkeleton } from "../default-loading";
+import { Navbar } from "../navigation";
 
 const Calls = lazy(() => import("./calls"));
 const MessageRoom = lazy(() => import("./message-room"));
@@ -29,6 +29,7 @@ export default function Home() {
       socket.off("uid-to-socketId");
     };
   }, []);
+
   // Current behaviour: Person will only be able to take call if it was active in the application while other user called.
   useEffect(() => {
     socket.on("cancelled:call", () => {
@@ -50,14 +51,14 @@ export default function Home() {
           name: data.name,
           offer: data.offer,
         });
-      }
+      },
     );
     return () => {
       socket.off("incomming:call");
       socket.off("call-cancelled");
     };
   }, []);
-  console.log(socket.id);
+  // console.log(`View: ${view}, Current conversation: ${currentConversation.name}`)
   return (
     <Suspense fallback={<DefaultSkeleton />}>
       <PeerProvider>

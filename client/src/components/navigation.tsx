@@ -1,7 +1,7 @@
-import { MdMenu, MdClose, MdChevronLeft, MdAdd } from "react-icons/md";
-import { Input } from "./ui/input";
-import { useCurrentView, useSearch, useCurrentConversation } from "@/store";
 import { noConversation } from "@/lib/utils";
+import { useCurrentConversation, useCurrentView, useSearch } from "@/store";
+import { MdAdd, MdChevronLeft, MdClose, MdMenu } from "react-icons/md";
+import { Input } from "./ui/input";
 
 export function Header({ title }: { title: string }) {
   return (

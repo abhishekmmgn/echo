@@ -13,7 +13,7 @@ export default function TableRow(props: PropsType) {
     <div
       className={cn(
         "h-14 px-4 flex items-center justify-between hover:bg-muted/60 border-b",
-        props.className
+        props.className,
       )}
     >
       <div className="flex gap-4 items-center">
@@ -25,7 +25,9 @@ export default function TableRow(props: PropsType) {
         <p>{props.title}</p>
       </div>
       {props.value && (
-        <p className="text-right text-muted-foreground text-sm">{props.value}</p>
+        <p className="text-right text-muted-foreground text-sm">
+          {props.value}
+        </p>
       )}
       {props.children && props.children}
     </div>

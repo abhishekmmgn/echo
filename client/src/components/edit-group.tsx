@@ -1,18 +1,5 @@
-import { Person, PersonSkeleton } from "./person";
-import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getId, formatAvatarName } from "@/lib/utils";
-import { Input } from "./ui/input";
-import { toast } from "sonner";
-import { ContactType, ConversationStateType } from "@/types";
-import { Button } from "./ui/button";
-import { Check, Loader } from "lucide-react";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import api from "@/api/axios";
-import { useCurrentConversation } from "@/store";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Form,
   FormControl,
@@ -21,7 +8,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { formatAvatarName, getId } from "@/lib/utils";
+import { useCurrentConversation } from "@/store";
+import { ContactType, ConversationStateType } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { Check, Loader } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Person, PersonSkeleton } from "./person";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 const formSchema = z.object({
   name: z
@@ -40,7 +40,7 @@ export function EditGroupForm() {
     useCurrentConversation();
   const [fileUploading, setFileUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    currentConversation.avatar
+    currentConversation.avatar,
   );
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,7 +71,7 @@ export function EditGroupForm() {
       }
     } else {
       toast(
-        "You have reached the maximum number of attempts. Please try again later."
+        "You have reached the maximum number of attempts. Please try again later.",
       );
     }
   }
@@ -94,7 +94,7 @@ export function EditGroupForm() {
 
       const avatarsRef = ref(
         storage,
-        "groupAvatars/" + `${file.name}-${Date.now()}`
+        "groupAvatars/" + `${file.name}-${Date.now()}`,
       );
       uploadBytes(avatarsRef, file).then((snapshot) => {
         console.log("Image uploaded!");
@@ -205,7 +205,7 @@ export function EditMembers() {
     setFilteredMembers(
       data.filter((person: ContactType) => {
         return person.name.toLowerCase().includes(e.target.value.toLowerCase());
-      })
+      }),
     );
   }
 
@@ -218,7 +218,7 @@ export function EditMembers() {
       setAdded((prev) =>
         prev.filter((person) => {
           return newPerson.id !== person.id;
-        })
+        }),
       );
       return;
     } else {

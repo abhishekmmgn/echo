@@ -1,9 +1,9 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import { DefaultSkeleton } from "./components/default-loading";
-import { useCurrentUser } from "@/store";
-import { lazy, Suspense, useEffect, useState } from "react";
 import api from "@/api/axios";
+import { useCurrentUser } from "@/store";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import Cookies from "universal-cookie";
+import { DefaultSkeleton } from "./components/default-loading";
 import { BasicDetailsType } from "./types";
 
 const Auth = lazy(() => import("@/components/views/auth"));
@@ -48,7 +48,6 @@ function App() {
         console.log("User not found");
         createAccount();
       } else if (data.id) {
-        console.log("User found");
         const cookies = new Cookies();
         cookies.set("id", data.id);
         changeCurrentUser({

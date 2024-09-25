@@ -1,6 +1,6 @@
+import echoLogo from "@/assets/echo-logo.png";
 import { Button } from "@/components/ui/button";
 import { useAuth0 } from "@auth0/auth0-react";
-import echoLogo from "@/assets/echo-logo.png";
 
 export default function Auth() {
   const { loginWithRedirect } = useAuth0();

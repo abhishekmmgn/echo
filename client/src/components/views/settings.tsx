@@ -1,17 +1,17 @@
-import { Button } from "../ui/button";
-import ThemeToggle from "../theme-toggler";
-import TableRow from "../table-row";
-import { Separator } from "../ui/separator";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useCurrentUser } from "@/store";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getId, formatAvatarName } from "@/lib/utils";
-import { Pencil } from "lucide-react";
-import ResponsiveDialog from "../responsive-dialog";
-import EditProfileForm from "../forms/edit-profile-form";
-import Cookies from "universal-cookie";
 import api from "@/api/axios";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatAvatarName, getId } from "@/lib/utils";
+import { useCurrentUser } from "@/store";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
+import Cookies from "universal-cookie";
+import EditProfileForm from "../forms/edit-profile-form";
+import ResponsiveDialog from "../responsive-dialog";
+import TableRow from "../table-row";
+import ThemeToggle from "../theme-toggler";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
 
 export default function Settings() {
   const { logout } = useAuth0();

@@ -1,4 +1,10 @@
+import api from "@/api/axios";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatAvatarName, formatDateTime, noConversation } from "@/lib/utils";
 import { useCurrentConversation, useCurrentView } from "@/store";
+import { ConversationType } from "@/types";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   ContextMenu,
@@ -6,12 +12,6 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "./ui/context-menu";
-import { formatAvatarName, formatDateTime, noConversation } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ConversationType } from "@/types";
-import api from "@/api/axios";
-import { useState } from "react";
-import { toast } from "sonner";
 
 export function Conversation(props: ConversationType) {
   const { currentConversation, changeCurrentConversation } =
@@ -43,11 +43,9 @@ export function Conversation(props: ConversationType) {
   }
   return (
     <ContextMenu>
-      <ContextMenuTrigger>
+      <ContextMenuTrigger asChild>
         <div
           onClick={() => {
-            // changeCurrentConversation(noConversation);
-            // changeView("calls");
             const curConv = {
               conversationId: props.id,
               name: props.name,

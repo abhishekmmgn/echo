@@ -70,6 +70,7 @@
     "uuid": "^9.0.1",
     "vaul": "^0.9.0",
     "vite-plugin-remove-console": "^2.2.0",
+    "webrtc-adapter": "^9.0.1",
     "zod": "^3.22.4",
     "zustand": "^4.5.0"
   },

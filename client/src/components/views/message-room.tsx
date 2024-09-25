@@ -1,19 +1,10 @@
-import {
-  ActivityBubble,
-  BubbleSkeleton,
-  FileBubble,
-  ImageBubble,
-  TextBubble,
-} from "../bubbles";
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import { MdAdd, MdSend } from "react-icons/md";
-import { Input } from "../ui/input";
-import { toast } from "sonner";
 import api from "@/api/axios";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useSocket } from "@/lib/socket-provider";
 import {
-  getId,
   formatAvatarName,
   getFileName,
+  getId,
   noConversation,
 } from "@/lib/utils";
 import {
@@ -21,13 +12,22 @@ import {
   useCurrentConversation,
   useCurrentView,
 } from "@/store";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MdCall, MdChevronLeft } from "react-icons/md";
 import { ConversationStateType, MessageType } from "@/types";
-import { File } from "lucide-react";
 import { isAxiosError } from "axios";
-import { useSocket } from "@/lib/socket-provider";
+import { File } from "lucide-react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { MdAdd, MdSend } from "react-icons/md";
+import { MdCall, MdChevronLeft } from "react-icons/md";
+import { toast } from "sonner";
+import {
+  ActivityBubble,
+  BubbleSkeleton,
+  FileBubble,
+  ImageBubble,
+  TextBubble,
+} from "../bubbles";
 import CallNotification from "../call-notification";
+import { Input } from "../ui/input";
 
 export default function MessageRoom() {
   const { socket } = useSocket();
@@ -76,7 +76,7 @@ export default function MessageRoom() {
         changeCurrentConversation(newConversation);
         const sortedMessages = data.messages.sort(
           (a: MessageType, b: MessageType) =>
-            new Date(a.time).getTime() - new Date(b.time).getTime()
+            new Date(a.time).getTime() - new Date(b.time).getTime(),
         );
         setMessages(sortedMessages);
       }
@@ -277,7 +277,7 @@ function SendMessage({
           setMessageType(type);
           const itemRef = ref(
             storage,
-            `${type.toLowerCase()}s/` + `---${file.name}---${Date.now()}`
+            `${type.toLowerCase()}s/` + `---${file.name}---${Date.now()}`,
           );
           setFileUploading(true);
           setMessage("Uploading...");
@@ -295,7 +295,7 @@ function SendMessage({
         setFileUploading(false);
       }
     },
-    []
+    [],
   );
 
   const sendMessage = useCallback(async () => {

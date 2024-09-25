@@ -1,23 +1,23 @@
-import {
-  getId,
-  formatAvatarName,
-  formatDateTime,
-  getFileName,
-} from "@/lib/utils";
+import api from "@/api/axios";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { File } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Separator } from "./ui/separator";
-import { saveAs } from "file-saver";
-import { Skeleton } from "./ui/skeleton";
+import {
+  formatAvatarName,
+  formatDateTime,
+  getFileName,
+  getId,
+} from "@/lib/utils";
 import { useCurrentConversation } from "@/store";
+import { saveAs } from "file-saver";
+import { File } from "lucide-react";
 import { useState } from "react";
-import api from "@/api/axios";
+import { Separator } from "./ui/separator";
+import { Skeleton } from "./ui/skeleton";
 
 interface BubbleInterface {
   sender: "current" | "other";

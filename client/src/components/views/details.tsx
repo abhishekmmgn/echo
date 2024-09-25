@@ -1,23 +1,23 @@
-import { useCurrentConversation, useCurrentView } from "@/store";
-import { MdChevronLeft } from "react-icons/md";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import api from "@/api/axios";
 import {
-  getId,
   formatAvatarName,
   getFileName,
+  getId,
   noConversation,
 } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { Person } from "../person";
-import { ScrollArea } from "../ui/scroll-area";
-import File from "../file";
-import api from "@/api/axios";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useCurrentConversation, useCurrentView } from "@/store";
 import { ContactType } from "@/types";
 import { Pencil } from "lucide-react";
-import ResponsiveDialog from "../responsive-dialog";
+import { useEffect, useState } from "react";
+import { MdChevronLeft } from "react-icons/md";
+import { toast } from "sonner";
 import { EditGroupForm, EditMembers } from "../edit-group";
+import File from "../file";
+import { Person } from "../person";
+import ResponsiveDialog from "../responsive-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
+import { ScrollArea } from "../ui/scroll-area";
 
 export default function Details() {
   const { currentConversation, changeCurrentConversation } =
@@ -36,7 +36,7 @@ export default function Details() {
   async function deleteConversation() {
     try {
       const res = await api.delete(
-        `/conversations/${currentConversation.conversationId}`
+        `/conversations/${currentConversation.conversationId}`,
       );
       if (res.status === 200) {
         changeCurrentConversation(noConversation);
@@ -53,7 +53,7 @@ export default function Details() {
         `/contacts/${currentConversation.participants[0]}?id=${getId()}`,
         {
           block: true,
-        }
+        },
       );
       console.log(res.status);
       if (res.status === 200) {
@@ -88,7 +88,7 @@ export default function Details() {
       const res = await api.get(
         `/conversations/${
           currentConversation.conversationId
-        }/details?id=${getId()}`
+        }/details?id=${getId()}`,
       );
       const data = res.data.data;
       // console.log(data);

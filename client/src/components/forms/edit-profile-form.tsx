@@ -1,6 +1,5 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import api from "@/api/axios";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,14 +11,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader } from "lucide-react";
-import { toast } from "sonner";
-import { useState } from "react";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import api from "@/api/axios";
+import { getId } from "@/lib/utils";
 import { useCurrentUser } from "@/store";
 import { BasicDetailsType } from "@/types";
-import { getId } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = z.object({
   avatar: z.string().optional(),
@@ -93,7 +93,7 @@ export default function EditProfileForm() {
 
       const avatarsRef = ref(
         storage,
-        "avatars/" + `${file.name}-${Date.now()}`
+        "avatars/" + `${file.name}-${Date.now()}`,
       );
       uploadBytes(avatarsRef, file).then((snapshot) => {
         console.log("Image uploaded!");

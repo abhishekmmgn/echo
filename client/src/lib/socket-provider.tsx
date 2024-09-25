@@ -1,6 +1,6 @@
+import { SocketStateType } from "@/types";
 import { createContext, useContext, useMemo } from "react";
 import { io } from "socket.io-client";
-import { SocketStateType } from "@/types";
 import { server } from "./utils";
 
 const SocketContext = createContext<SocketStateType>({} as SocketStateType);

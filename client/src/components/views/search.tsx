@@ -1,12 +1,12 @@
+import api from "@/api/axios";
+import { getId } from "@/lib/utils";
+import { useSearch } from "@/store";
+import { ContactType, ConversationType } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Conversation } from "../conversation";
 import { Person, PersonSkeleton } from "../person";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { useSearch } from "@/store";
-import { ContactType, ConversationType } from "@/types";
-import api from "@/api/axios";
-import { useQuery } from "@tanstack/react-query";
-import { getId } from "@/lib/utils";
 
 // CONVERSATION
 export default function Search() {
@@ -46,7 +46,7 @@ export default function Search() {
       setFilteredContacts(
         contactsData.filter((person: ContactType) => {
           return person.name.toLowerCase().includes(searchTerm.toLowerCase());
-        })
+        }),
       );
     }
     if (searchTerm.length === 0) {
@@ -62,7 +62,7 @@ export default function Search() {
       setFilteredConversations(
         conversationsData.filter((person: ConversationType) => {
           return person.name.toLowerCase().includes(searchTerm.toLowerCase());
-        })
+        }),
       );
     }
     if (searchTerm.length === 0) {

@@ -1,21 +1,21 @@
+import api from "@/api/axios";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { formatAvatarName, getId } from "@/lib/utils";
+import { useCurrentConversation, useCurrentView } from "@/store";
+import { ContactType, ConversationStateType } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { Check, Loader } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MdContacts, MdGroup } from "react-icons/md";
+import { toast } from "sonner";
+import GroupForm from "../forms/grp-form";
+import NewContactForm from "../forms/new-contact-form";
 import { Person, PersonSkeleton } from "../person";
 import ResponsiveDialog from "../responsive-dialog";
 import TableRow from "../table-row";
-import { MdGroup, MdContacts } from "react-icons/md";
-import NewContactForm from "../forms/new-contact-form";
-import { useEffect, useState } from "react";
-import GroupForm from "../forms/grp-form";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getId, formatAvatarName } from "@/lib/utils";
-import { Input } from "../ui/input";
-import { toast } from "sonner";
-import { ContactType, ConversationStateType } from "@/types";
 import { Button } from "../ui/button";
-import { Check, Loader } from "lucide-react";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import api from "@/api/axios";
-import { useQuery } from "@tanstack/react-query";
-import { useCurrentView, useCurrentConversation } from "@/store";
+import { Input } from "../ui/input";
 
 export default function New() {
   const { data, isLoading, isError, error } = useQuery({
@@ -112,7 +112,7 @@ function AddMembers(props: GroupType) {
     setFilteredMembers(
       data.filter((person: ContactType) => {
         return person.name.toLowerCase().includes(e.target.value.toLowerCase());
-      })
+      }),
     );
   }
   function addToGrp(newPerson: ContactType) {
@@ -124,7 +124,7 @@ function AddMembers(props: GroupType) {
       setAdded((prev) =>
         prev.filter((person) => {
           return newPerson.id !== person.id;
-        })
+        }),
       );
       return;
     } else {

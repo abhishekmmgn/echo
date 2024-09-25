@@ -1,10 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { Conversation, ConversationSkeleton } from "../conversation";
-import { ConversationType } from "@/types";
 import api from "@/api/axios";
-import { getId } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import { useSocket } from "@/lib/socket-provider";
+import { getId } from "@/lib/utils";
+import { ConversationType } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { Conversation, ConversationSkeleton } from "../conversation";
 
 export default function Conversations() {
   const { socket } = useSocket();
@@ -37,11 +37,11 @@ export default function Conversations() {
         } else if (data.action === "DELETE") {
           setConversations((prev) =>
             prev.filter(
-              (conversation) => conversation.id !== data.conversation.id
-            )
+              (conversation) => conversation.id !== data.conversation.id,
+            ),
           );
         }
-      }
+      },
     );
   }, [socket]);
 
