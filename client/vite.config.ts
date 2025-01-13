@@ -5,6 +5,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import removeConsole from "vite-plugin-remove-console";
 
 export default defineConfig({
+  server: {
+    port: 3000
+  },
   plugins: [
     react(),
     removeConsole(),

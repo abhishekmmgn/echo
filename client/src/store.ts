@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { noCall, noConversation } from "./lib/utils";
+import { noCall  } from "./lib/utils";
 import { CallStateType, ConversationStateType, UserType } from "./types";
 
 type Views =
@@ -31,12 +31,12 @@ const useSearch = create<SearchState>()((set) => ({
 }));
 
 interface ConversationStateInterface {
-  currentConversation: ConversationStateType;
-  changeCurrentConversation: (newConversation: ConversationStateType) => void;
+  currentConversation: ConversationStateType | null;
+  changeCurrentConversation: (newConversation: ConversationStateType | null) => void;
 }
 const useCurrentConversation = create<ConversationStateInterface>()((set) => ({
-  currentConversation: noConversation,
-  changeCurrentConversation: (newConversation: ConversationStateType) =>
+  currentConversation: null,
+  changeCurrentConversation: (newConversation: ConversationStateType | null) =>
     set(() => ({ currentConversation: newConversation })),
 }));
 

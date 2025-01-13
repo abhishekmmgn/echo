@@ -69,13 +69,13 @@ export default function Calls() {
 
   function endCall() {
     if (callStatus === "DIALING") {
-      socket.emit("call:cancelled", currentConversation.conversationId);
+      socket.emit("call:cancelled", currentConversation?.conversationId);
     } else {
       // drop the rtc connection
     }
     setCallStatus("ENDED");
     setTimeout(() => {
-      if (currentConversation.conversationId) {
+      if (currentConversation?.conversationId) {
         changeView("message-room");
       } else {
         changeView("home");
@@ -130,7 +130,7 @@ export default function Calls() {
     console.log(`Local offer: ${localOffer}`);
     await pc.setLocalDescription(new RTCSessionDescription(localOffer));
     const call =
-      currentConversation.conversationType === "PRIVATE"
+      currentConversation?.conversationType === "PRIVATE"
         ? currentUser
         : currentConversation;
     const payload: {
@@ -142,11 +142,11 @@ export default function Calls() {
       participants: string[];
     } = {
       userId: getId(),
-      avatar: call.avatar,
-      name: call.name!,
+      avatar: call?.avatar ?? null,
+      name: call?.name!,
       offer: localOffer,
-      conversationId: currentConversation.conversationId!,
-      participants: currentConversation.participants,
+      conversationId: currentConversation?.conversationId!,
+      participants: currentConversation?.participants ?? [],
     };
     socket.emit("outgoing:call", payload);
   }

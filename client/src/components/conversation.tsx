@@ -1,6 +1,6 @@
 import api from "@/api/axios";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatAvatarName, formatDateTime, noConversation } from "@/lib/utils";
+import { formatAvatarName, formatDateTime} from "@/lib/utils";
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { ConversationType } from "@/types";
 import { useState } from "react";
@@ -19,13 +19,13 @@ export function Conversation(props: ConversationType) {
   const { changeView } = useCurrentView();
   const [deleted, setDeleted] = useState(false);
 
-  const active: boolean = props.id === currentConversation.conversationId;
+  const active: boolean = props.id === currentConversation?.conversationId;
   async function deleteConversation() {
     if (props.id) {
       try {
         const res = await api.delete(`/conversations/${props.id}`);
         if (res.status === 200) {
-          changeCurrentConversation(noConversation);
+          changeCurrentConversation(null);
           changeView("home");
           setDeleted(true);
         }
@@ -46,16 +46,15 @@ export function Conversation(props: ConversationType) {
       <ContextMenuTrigger asChild>
         <div
           onClick={() => {
-            const curConv = {
+            changeCurrentConversation({
               conversationId: props.id,
               name: props.name,
               avatar: props.avatar,
               email: null,
               participants: [],
               conversationType: props.type,
-              hasConversation: null,
-            };
-            changeCurrentConversation(curConv);
+              hasConversation: false,      
+            });
             changeView("message-room");
           }}
           className={`w-full h-16 flex items-center hover:bg-muted/60 border-b px-4 gap-4 cursor-pointer ${

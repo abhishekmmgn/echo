@@ -5,13 +5,13 @@ import { useCurrentCall, useCurrentView } from "@/store";
 import { Suspense, lazy, useEffect } from "react";
 import { DefaultSkeleton } from "../default-loading";
 import { Navbar } from "../navigation";
+import Search from "@/components/views/search";
 
 const Calls = lazy(() => import("./calls"));
 const MessageRoom = lazy(() => import("./message-room"));
 const Details = lazy(() => import("./details"));
 const Conversations = lazy(() => import("./conversations"));
 const Settings = lazy(() => import("./settings"));
-const Search = lazy(() => import("./search"));
 const DefaultView = lazy(() => import("./default-view"));
 const CallNotification = lazy(() => import("@/components/call-notification"));
 const New = lazy(() => import("./new"));

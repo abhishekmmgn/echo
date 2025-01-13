@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 import { prisma } from "..";
-import type { ConversationType } from "../types";
+import type { ConversationStateType, ConversationType } from "../types";
 
 export async function getAllConversations(req: Request, res: Response) {
   const { id } = req.query;
@@ -47,7 +47,7 @@ export async function getAllConversations(req: Request, res: Response) {
       },
     });
 
-    const formattedConversations: ConversationType[] = conversations.map(
+    const formattedConversations = conversations.map(
       (convo) => {
         let name = convo.name;
         let avatar = convo.avatar;
@@ -162,11 +162,13 @@ export async function getConversation(req: Request, res: Response) {
       const participantIds = conversation.participants.map(
         (participant) => participant.id
       );
-      const formattedConversation = {
-        id: conversation.id,
+      const formattedConversation: ConversationStateType = {
+        conversationId: conversation.id,
         name: name!,
         avatar,
-        type: conversation.type,
+        email: "",
+        hasConversation: true,
+        conversationType: conversation.type,
         participants: participantIds,
       };
       const formattedMessages = messages.map((message) => {
@@ -197,6 +199,7 @@ export async function getConversation(req: Request, res: Response) {
     res.status(500).json({ error: "Error finding contact" });
   }
 }
+
 export async function getConversationDetails(req: Request, res: Response) {
   const { conversationId } = req.params;
   const { id } = req.query;
@@ -249,10 +252,13 @@ export async function getConversationDetails(req: Request, res: Response) {
     res.status(500).json({ error: "Error finding contact" });
   }
 }
+
 export async function createConversation(req: Request, res: Response) {
   const { participants, content, conversationType, name, avatar, messageType } =
     req.body;
   const { id } = req.query;
+
+  console.log("-----------------", participants, content, conversationType, name, avatar, messageType, "---------------");
 
   // valiadtion for group & private conversation
   if (
@@ -311,6 +317,7 @@ export async function createConversation(req: Request, res: Response) {
         },
       });
     } else if (conversationType === "PRIVATE") {
+      console.log("----creating private conv---")
       const conversation = await prisma.conversation.findFirst({
         where: {
           type: "PRIVATE",
@@ -328,23 +335,23 @@ export async function createConversation(req: Request, res: Response) {
           ],
         },
       });
-      const messages = await prisma.message.findMany({
-        where: {
-          conversation: {
-            id: conversation?.id,
-          },
-        },
-        include: {
-          sender: {
-            select: {
-              name: true,
-              avatar: true,
+      
+      if (conversation) {
+        const messages = await prisma.message.findMany({
+          where: {
+            conversation: {
+              id: conversation?.id,
             },
           },
-        },
-      });
-
-      if (conversation && messages) {
+          include: {
+            sender: {
+              select: {
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        });
         return res.status(200).json({
           message: "Conversation found",
           data: {
@@ -353,6 +360,7 @@ export async function createConversation(req: Request, res: Response) {
           },
         });
       }
+      console.log("---------",participantIds, id, "-----");
       const result = await prisma.$transaction(async (prisma) => {
         const conversation = await prisma.conversation.create({
           data: {
@@ -427,6 +435,7 @@ export async function createConversation(req: Request, res: Response) {
     });
   }
 }
+
 export async function deleteConversation(req: Request, res: Response) {
   const conversationId = req.params.id;
 

@@ -1,4 +1,3 @@
-import { noConversation } from "@/lib/utils";
 import { useCurrentConversation, useCurrentView, useSearch } from "@/store";
 import { MdAdd, MdChevronLeft, MdClose, MdMenu } from "react-icons/md";
 import { Input } from "./ui/input";
@@ -27,7 +26,7 @@ export function Navbar() {
             <MdClose
               className="w-6 h-6 cursor-pointer"
               onClick={() => {
-                changeCurrentConversation(noConversation);
+                changeCurrentConversation(null);
                 changeView("home");
               }}
             />

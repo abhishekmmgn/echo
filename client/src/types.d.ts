@@ -43,13 +43,13 @@ export type ConversationType = {
 };
 
 type ConversationStateType = {
-  conversationId: string | null;
-  name: string | null;
+  conversationId: string;
+  name: string;
   avatar: string | null;
   email: string | null;
   participants: string[];
-  conversationType: "PRIVATE" | "GROUP" | null;
-  hasConversation: boolean | null;
+  conversationType: "PRIVATE" | "GROUP";
+  hasConversation: boolean;
 };
 
 type CallStateType = {

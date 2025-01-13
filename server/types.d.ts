@@ -18,8 +18,18 @@ export type ConversationType = {
   name: string;
   avatar: string | null;
   lastMessage: string;
-  lastMessageType: string;
+  lastMessageType: "TEXT" | "IMAGE" | "FILE";
   lastMessageTime: string;
   id: string;
   type: "PRIVATE" | "GROUP";
+};
+
+export type ConversationStateType = {
+  conversationId: string;
+  name: string;
+  avatar: string | null;
+  email: string | null;
+  participants: string[];
+  conversationType: "PRIVATE" | "GROUP";
+  hasConversation: boolean;
 };

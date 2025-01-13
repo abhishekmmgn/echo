@@ -67,25 +67,26 @@ export default function GroupForm({
     }
   }
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { getDownloadURL, ref, uploadBytes } = await import(
-      "firebase/storage"
-    );
-    const { storage } = await import("@/lib/firebase-config");
-
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 1024 * 1024) {
-        toast("File size must be less than 1MB.");
-        return;
-      }
-      setFileUploading(true);
-      const url = URL.createObjectURL(file);
+    try {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (file.size > 1024 * 1024) {
+          toast("File size must be less than 1MB.");
+          return;
+        }
+        const { getDownloadURL, ref, uploadBytes } = await import(
+          "firebase/storage"
+        );
+        const { storage } = await import("@/lib/firebase-config");
+        setFileUploading(true);
+        const url = URL.createObjectURL(file);
       setAvatarUrl(url);
-
+      
       const avatarsRef = ref(
         storage,
         "groupAvatars/" + `${file.name}-${Date.now()}`,
       );
+      console.log("Uploading image...");
       uploadBytes(avatarsRef, file).then((snapshot) => {
         console.log("Image uploaded!");
         getDownloadURL(snapshot.ref).then((downloadURL) => {
@@ -95,7 +96,10 @@ export default function GroupForm({
         });
         toast("Image uploaded!");
       });
-    }
+      }
+    } catch(error) {
+      console.log(error);
+    }  
   }
   return (
     <Form {...form}>

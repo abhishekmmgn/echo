@@ -67,7 +67,7 @@ function BubbleWrapper(props: BubbleWrapperInterface) {
         }`}
       >
         {props.sender === "other" &&
-          currentConversation.conversationType === "GROUP" && (
+          currentConversation?.conversationType === "GROUP" && (
             <Avatar className="h-9 w-9">
               <AvatarImage src={props.avatar || ""} alt={props.name} />
               <AvatarFallback className="text-xs+">
@@ -77,7 +77,7 @@ function BubbleWrapper(props: BubbleWrapperInterface) {
           )}
         <div className="-mb-5 flex flex-col gap-[6px] items-end">
           {props.sender === "other" &&
-            currentConversation.conversationType === "GROUP" && (
+            currentConversation?.conversationType === "GROUP" && (
               <div className="w-full">
                 <p className="text-xs lg:text-xs+ text-muted-foreground">
                   {props.name}

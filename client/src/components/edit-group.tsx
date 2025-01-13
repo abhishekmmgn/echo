@@ -40,31 +40,32 @@ export function EditGroupForm() {
     useCurrentConversation();
   const [fileUploading, setFileUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    currentConversation.avatar,
+    currentConversation?.avatar ?? null,
   );
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: currentConversation.name!,
+      name: currentConversation?.name!,
     },
   });
 
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if(!currentConversation?.conversationId) return;
+
     if (form.formState.submitCount < 3) {
       const res = await api.put(`/conversations/?id=${getId()}`, {
         conversationId: currentConversation.conversationId,
         operation: "EDIT_DETAILS",
         name: values.name,
-        avatar: avatarUrl || null,
+        avatar: avatarUrl,
       });
       console.log(res.data.data);
       if (res.status === 200) {
         const newConv: ConversationStateType = {
           ...currentConversation,
           name: values.name,
-          avatar: avatarUrl || null,
         };
         changeCurrentConversation(newConv);
         form.reset();
@@ -76,12 +77,6 @@ export function EditGroupForm() {
     }
   }
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { getDownloadURL, ref, uploadBytes, deleteObject } = await import(
-      "firebase/storage"
-    );
-    const { storage } = await import("@/lib/firebase-config");
-
-    const oldFileUrl = avatarUrl;
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {
@@ -89,6 +84,12 @@ export function EditGroupForm() {
         return;
       }
       setFileUploading(true);
+      const { getDownloadURL, ref, uploadBytes, deleteObject } = await import(
+        "firebase/storage"
+      );
+      const { storage } = await import("@/lib/firebase-config");
+  
+      const oldFileUrl = avatarUrl;
       const url = URL.createObjectURL(file);
       setAvatarUrl(url);
 
@@ -194,7 +195,7 @@ export function EditMembers() {
       const allItems = [...data];
       // only add those participants which are in the conversation
       const uniqueItems = allItems.filter((person) => {
-        return !currentConversation.participants.includes(person.id);
+        return !currentConversation?.participants.includes(person.id);
       });
       setFilteredMembers(uniqueItems);
     }
@@ -235,6 +236,8 @@ export function EditMembers() {
     }
   }
   async function editGroup() {
+  if(!currentConversation?.conversationId) return;
+
     setIsSubmitting(true);
     const participants = added.map((person) => person.id);
     try {
@@ -245,7 +248,7 @@ export function EditMembers() {
       });
       const data = res.data;
       console.log(data);
-
+      
       const newConversation: ConversationStateType = {
         ...currentConversation,
         participants: res.data.participants,
@@ -255,7 +258,7 @@ export function EditMembers() {
       console.log(err);
       toast("Error edit group members.");
     }
-    setIsSubmitting(false);
+    setIsSubmitting(false); 
   }
 
   if (isError) console.log(error);

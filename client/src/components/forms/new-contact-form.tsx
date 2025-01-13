@@ -16,6 +16,7 @@ import { Loader } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -29,33 +30,39 @@ export default function NewContactForm() {
     },
   });
   const { isSubmitting } = form.formState;
+const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+  mutationFn: async (email: string) => {
+    const response = await api.post(`/contacts?id=${getId()}`, { email });
+    return response.data;
+  },
+  onSuccess: () => {
+    toast("Contact added successfully.");
+    form.reset();
+    queryClient.invalidateQueries({ queryKey: ["contacts"] });
+  },
+  onError: (error) => {
+    if (isAxiosError(error)) {
+      if (error?.response?.status === 400) {
+        toast("Email required.");
+      } else if (error?.response?.status === 404) {
+        toast("User not found.");
+      } else if (error?.response?.status === 409) {
+        toast("Contact already exists.");
+      } else {
+        toast("Something went wrong");
+      }
+      return;
+    }
+    toast("Something went wrong");
+  }
+});
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (form.formState.submitCount < 3) {
-      try {
-        const res = await api.post(`/contacts?id=${getId()}`, {
-          email: values.email,
-        });
-        console.log(res.status);
-        if (res.status === 201) {
-          console.log(res.data.data);
-          form.reset();
-        }
-        toast("Contact added successfully.");
-      } catch (error) {
-        if (isAxiosError(error)) {
-          if (error?.response?.status! === 400) {
-            toast("Email required.");
-          } else if (error?.response?.status! === 404) {
-            toast("User not found.");
-          } else if (error?.response?.status! === 409) {
-            toast("Contact already exists.");
-          }
-          return;
-        }
-        console.log(error);
-        toast("Something went wrong");
-      }
+        mutation.mutate(values.email);
     } else {
       toast("You have reached the limit of 3 submits");
     }

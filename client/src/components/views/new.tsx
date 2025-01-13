@@ -18,7 +18,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
 export default function New() {
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ["contacts"],
     queryFn: async () => {
       const res = await api.get(`/contacts?id=${getId()}`);
@@ -54,7 +54,7 @@ export default function New() {
         title="Contacts"
         className="pl-5 hover:bg-transparent border-none"
       />
-      {isLoading &&
+      {isPending &&
         Array.from({ length: 10 }).map((_, idx) => (
           <PersonSkeleton key={idx} />
         ))}
@@ -96,7 +96,7 @@ function AddMembers(props: GroupType) {
   const [filteredMembers, setFilteredMembers] = useState<ContactType[]>([]);
   const [submitting, setIsSubmitting] = useState(false);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ["contacts"],
     queryFn: async () => {
       const res = await api.get(`/contacts?id=${getId()}`);
@@ -160,7 +160,7 @@ function AddMembers(props: GroupType) {
         email: null,
         participants: [...participants, getId()],
         conversationType: "GROUP",
-        hasConversation: null,
+        hasConversation: false,
       };
       changeCurrentConversation(newConversation);
       changeView("message-room");
@@ -183,7 +183,7 @@ function AddMembers(props: GroupType) {
             onChange={handleSearch}
           />
         </div>
-        {isLoading &&
+        {isPending &&
           Array.from({ length: 3 }).map((_, idx) => (
             <PersonSkeleton key={idx} />
           ))}

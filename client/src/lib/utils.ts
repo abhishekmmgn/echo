@@ -1,4 +1,4 @@
-import { CallStateType, ConversationStateType } from "@/types";
+import { CallStateType} from "@/types";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Cookies from "universal-cookie";
@@ -25,16 +25,6 @@ export function formatTime(seconds: number): string {
     .toString()
     .padStart(2, "0")}`;
 }
-
-export const noConversation: ConversationStateType = {
-  conversationId: "",
-  name: "",
-  avatar: "",
-  email: null,
-  participants: [],
-  conversationType: null,
-  hasConversation: null,
-};
 
 export const noCall: CallStateType = {
   callId: "",

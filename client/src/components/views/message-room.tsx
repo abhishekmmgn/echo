@@ -5,7 +5,6 @@ import {
   formatAvatarName,
   getFileName,
   getId,
-  noConversation,
 } from "@/lib/utils";
 import {
   useCurrentCall,
@@ -57,23 +56,20 @@ export default function MessageRoom() {
 
   async function getConversation() {
     try {
-      const otherUserId = currentConversation.participants[0];
-      const url = currentConversation.conversationId
+      const otherUserId = currentConversation?.participants[0];
+      const url = currentConversation?.conversationId
         ? `/conversations/conversation?conversationId=${
             currentConversation.conversationId
           }&id=${getId()}`
         : `/conversations/conversation?otherUserId=${otherUserId}&id=${getId()}`;
-      const data = await fetchConversation(url);
+      const data: {conversation: ConversationStateType, messages: []} = await fetchConversation(url);
 
+      // ! could be error- conversation id or id?
       if (data) {
-        const newConversation: ConversationStateType = {
-          ...currentConversation,
-          conversationId: data.conversation.id,
-          participants: data.conversation.participants,
-          hasConversation:
-            currentConversation.conversationType === "PRIVATE" ? true : null,
-        };
-        changeCurrentConversation(newConversation);
+        changeCurrentConversation({
+          ...data.conversation,
+          email: currentConversation?.email ?? null,
+        });
         const sortedMessages = data.messages.sort(
           (a: MessageType, b: MessageType) =>
             new Date(a.time).getTime() - new Date(b.time).getTime(),
@@ -92,18 +88,22 @@ export default function MessageRoom() {
   }
 
   useEffect(() => {
+      console.log(`Message room: Before getting conversation..., ${currentConversation?.conversationId}, ${currentConversation?.hasConversation}`)
     if (
-      currentConversation.conversationId ||
-      currentConversation.hasConversation
+      currentConversation?.conversationId ||
+      currentConversation?.hasConversation
     ) {
+      console.log(`Message room: Getting conversation..., ${currentConversation.conversationId}, ${currentConversation.hasConversation}`)
       getConversation();
+    } else {
+      setLoading(false);
     }
-  }, [currentConversation.name]);
+  }, [currentConversation?.name]);
 
   useEffect(() => {
-    socket.emit("join-room", currentConversation.conversationId);
+    socket.emit("join-room", currentConversation?.conversationId);
     return () => {
-      socket.emit("leave-room", currentConversation.conversationId);
+      socket.emit("leave-room", currentConversation?.conversationId);
       socket.off("join-room");
     };
   }, []);
@@ -139,6 +139,7 @@ export default function MessageRoom() {
   }, [messages, activity]);
 
   function makeCall() {
+    if(!currentConversation) return;
     changeCurrentCall({
       ...currentCall,
       name: currentConversation.name,
@@ -154,7 +155,7 @@ export default function MessageRoom() {
         <MdChevronLeft
           className="w-8 h-8 cursor-pointer"
           onClick={() => {
-            changeCurrentConversation(noConversation);
+            changeCurrentConversation(null);
             changeView("home");
           }}
         />
@@ -164,18 +165,18 @@ export default function MessageRoom() {
         >
           <Avatar className="h-11 w-11">
             <AvatarImage
-              src={currentConversation.avatar || ""}
-              alt={currentConversation.name!}
+              src={currentConversation?.avatar ?? ""}
+              alt={currentConversation?.name!}
             />
             <AvatarFallback>
-              {formatAvatarName(currentConversation.name!)}
+              {formatAvatarName(currentConversation?.name!)}
             </AvatarFallback>
           </Avatar>
           <p className="text-center text-sm capitalize">
-            {currentConversation.name}
+            {currentConversation?.name}
           </p>
         </div>
-        {currentConversation.conversationType === "PRIVATE" ? (
+        {currentConversation?.conversationType === "PRIVATE" ? (
           <MdCall className="w-6 h-6 cursor-pointer" onClick={makeCall} />
         ) : (
           <MdCall className="invisible" />
@@ -299,6 +300,7 @@ function SendMessage({
   );
 
   const sendMessage = useCallback(async () => {
+    if(!currentConversation) return;
     if (fileUploading) {
       toast("File still uploading.");
       return;
@@ -330,6 +332,8 @@ function SendMessage({
   }, [message, fileUrl, messageType]);
 
   async function createPrivateConversation() {
+    console.log(`creating private conversation: ${currentConversation?.participants} ${message}, ${getId()}`)
+    if(!currentConversation) return;
     try {
       const res = await api.post(`/conversations?id=${getId()}`, {
         participants: currentConversation.participants,
@@ -371,7 +375,7 @@ function SendMessage({
 
   function sendActivity(e: React.ChangeEvent<HTMLInputElement>) {
     setMessage(e.target.value);
-    socket.emit("send-activity", currentConversation.conversationId);
+    socket.emit("send-activity", currentConversation?.conversationId);
   }
 
   return (
@@ -405,7 +409,7 @@ function SendMessage({
             <MdAdd className="w-8 h-8 p-1 rounded-full cursor-pointer bg-background z-20" />
             <Input
               type="file"
-              className="w-8 h-8 absolute top-0 right-0 bg-transparent text-background"
+              className="w-8 h-8 absolute top-0 right-0 bg-transparent text-background file:text-transparent"
               onChange={onFileChange}
             />
           </div>

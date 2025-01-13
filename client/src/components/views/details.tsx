@@ -3,7 +3,6 @@ import {
   formatAvatarName,
   getFileName,
   getId,
-  noConversation,
 } from "@/lib/utils";
 import { useCurrentConversation, useCurrentView } from "@/store";
 import { ContactType } from "@/types";
@@ -34,12 +33,13 @@ export default function Details() {
   });
 
   async function deleteConversation() {
+    if(!currentConversation) return;
     try {
       const res = await api.delete(
         `/conversations/${currentConversation.conversationId}`,
       );
       if (res.status === 200) {
-        changeCurrentConversation(noConversation);
+        changeCurrentConversation(null);
         changeView("home");
       }
     } catch (error) {
@@ -47,7 +47,9 @@ export default function Details() {
       toast("Something went wrong");
     }
   }
+
   async function blockPerson() {
+    if(!currentConversation) return;
     try {
       const res = await api.put(
         `/contacts/${currentConversation.participants[0]}?id=${getId()}`,
@@ -58,7 +60,7 @@ export default function Details() {
       console.log(res.status);
       if (res.status === 200) {
         toast("Blocked successfully");
-        changeCurrentConversation(noConversation);
+        changeCurrentConversation(null);
         changeView("home");
       }
     } catch (error) {
@@ -67,6 +69,7 @@ export default function Details() {
     }
   }
   async function exitGroup() {
+  if(!currentConversation) return; 
     try {
       const res = await api.put(`/conversations/?id=${getId()}`, {
         operation: "EXIT_GROUP",
@@ -75,7 +78,7 @@ export default function Details() {
       console.log(res);
       if (res.status === 200) {
         toast("Group exitedd successfully");
-        changeCurrentConversation(noConversation);
+        changeCurrentConversation(null);
         changeView("home");
       }
     } catch (error) {
@@ -84,6 +87,7 @@ export default function Details() {
     }
   }
   async function fetchDetails() {
+    if(!currentConversation) return;
     try {
       const res = await api.get(
         `/conversations/${
@@ -118,23 +122,23 @@ export default function Details() {
         <div className="flex flex-col items-center gap-1">
           <Avatar className="w-28 h-28 bg-secondary rounded-full sm:w-28 sm:h-28 text-5xl sm:text-6xl">
             <AvatarImage
-              src={currentConversation.avatar || ""}
-              alt={currentConversation.name || ""}
+              src={currentConversation?.avatar || ""}
+              alt={currentConversation?.name || ""}
             />
             <AvatarFallback>
-              {formatAvatarName(currentConversation.name || "")}
+              {formatAvatarName(currentConversation?.name || "")}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="flex gap-5 items-center">
               <h2
                 className={`${
-                  currentConversation.conversationType === "GROUP" && "ml-10"
+                  currentConversation?.conversationType === "GROUP" && "ml-10"
                 } mt-1 text-center capitalize font-medium text-2xl lg:text-3xl`}
               >
-                {currentConversation.name}
+                {currentConversation?.name}
               </h2>
-              {currentConversation.conversationType === "GROUP" && (
+              {currentConversation?.conversationType === "GROUP" && (
                 <ResponsiveDialog
                   title="Edit Group"
                   trigger={
@@ -146,7 +150,7 @@ export default function Details() {
               )}
             </div>
             <p className="text-center lowercase md:text-base+ text-muted-foreground">
-              {currentConversation.email}
+              {currentConversation?.email}
             </p>
           </div>
         </div>
@@ -158,14 +162,14 @@ export default function Details() {
                 {details.files?.length}
               </p>
             </div>
-            <ScrollArea className="max-h-80 py-1 border rounded-[--radius] shadow-sm">
+            <ScrollArea className="max-h-80 pt-1 border-x border-t rounded-[--radius] shadow-sm">
               {details.files?.map((item: string, index) => (
                 <File name={getFileName(item)!} url={item} key={index} />
               ))}
             </ScrollArea>
           </div>
         )}
-        {currentConversation.conversationType === "GROUP" && (
+        {currentConversation?.conversationType === "GROUP" && (
           <div className="px-4 space-y-2">
             <div className="flex items-center justify-between px-4">
               <p className="text-lg+ md:text-xl font-medium">Group Members</p>
@@ -179,7 +183,7 @@ export default function Details() {
                 />
               </div>
             </div>
-            <ScrollArea className="max-h-80 py-1 border rounded-[--radius] shadow-sm">
+            <ScrollArea className="max-h-80 pt-1 border-t border-x rounded-[--radius] shadow-sm">
               {details.participants?.map((person: ContactType) => (
                 <div className="pointer-events-none" key={person.id}>
                   <Person
@@ -196,7 +200,7 @@ export default function Details() {
           </div>
         )}
         <div className="px-4 space-y-3">
-          {currentConversation.conversationType === "GROUP" ? (
+          {currentConversation?.conversationType === "GROUP" ? (
             details.isAdmin ? (
               <Button variant="destructive" onClick={deleteConversation}>
                 Delete Group
